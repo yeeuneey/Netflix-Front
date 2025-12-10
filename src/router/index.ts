@@ -1,22 +1,23 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import HomePage from '../pages/HomePage.vue'
-import PopularPage from '../pages/PopularPage.vue'
-import SearchPage from '../pages/SearchPage.vue'
-import WishlistPage from '../pages/WishlistPage.vue'
-import SigninPage from '../pages/SigninPage.vue'
+import { createRouter, createWebHistory } from 'vue-router';
 
-const router = createRouter({
+import Home from '@/pages/Home.vue';
+import Popular from '@/pages/Popular.vue';
+import Search from '@/pages/Search.vue';
+import Wishlist from '@/pages/Wishlist.vue';
+import SignIn from '@/pages/Signin.vue';
+
+const routes = [
+  { path: '/', component: Home },
+  { path: '/popular', component: Popular },
+  { path: '/search', component: Search },
+  { path: '/wishlist', component: Wishlist },
+  { path: '/signin', component: SignIn },
+];
+
+export const router = createRouter({
   history: createWebHistory(),
-  routes: [
-    { path: '/', name: 'home', component: HomePage },
-    { path: '/popular', name: 'popular', component: PopularPage },
-    { path: '/search', name: 'search', component: SearchPage },
-    { path: '/wishlist', name: 'wishlist', component: WishlistPage },
-    { path: '/signin', name: 'signin', component: SigninPage },
-  ],
+  routes,
   scrollBehavior() {
-    return { top: 0 }
+    return { top: 0 };
   },
-})
-
-export default router
+});
