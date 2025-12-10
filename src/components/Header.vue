@@ -101,13 +101,14 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
   cursor: pointer;
 }
 .logo-icon {
-  font-size: 1.4rem;
-  color: #ff3366;
+  font-size: 1.5rem;
+  color: #ff0000;
 }
 .logo-text {
   font-weight: 800;
   letter-spacing: 0.08em;
-  font-size: 0.9rem;
+  font-size: 1.25rem;
+  color: #ff0000;
 }
 
 .nav-links {
@@ -126,10 +127,11 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
 }
 .nav-links button:hover {
   background: rgba(255, 255, 255, 0.1);
+  color: #ff0000;
   transform: translateY(-1px);
 }
 .nav-links button.active {
-  background: #ff3366;
+  background: #ff0000;
   color: #fff;
 }
 
@@ -144,7 +146,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
   gap: 0.3rem;
   padding: 0.3rem 0.8rem;
   border-radius: 999px;
-  border: 1px solid rgba(248, 248, 248, 0.4);
+  border: 2px solid rgba(248, 248, 248, 0.4);
   background: rgba(255, 255, 255, 0.03);
   color: #f8f8f8;
   cursor: pointer;
@@ -153,7 +155,8 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
 }
 .ghost:hover {
   background: rgba(255, 255, 255, 0.12);
-  border-color: #fff;
+  border-color: #ff0000;
+  color: #ff0000;
   transform: translateY(-1px);
 }
 .user-id {

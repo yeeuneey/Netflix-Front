@@ -101,13 +101,14 @@ const handleLoop = () => {
 
   const prefix = loopCount.value * step;
   const realSpan = total * step;
-  const tolerance = step * 0.4;
+  const tailStart = prefix + realSpan;
   const x = view.scrollLeft;
 
-  if (x < prefix - tolerance) {
-    view.scrollLeft = x + realSpan;
-  } else if (x > prefix + realSpan + tolerance) {
+  // when reaching cloned head/tail, jump back into real list span
+  if (x >= tailStart) {
     view.scrollLeft = x - realSpan;
+  } else if (x <= prefix - step) {
+    view.scrollLeft = x + realSpan;
   }
 };
 
