@@ -66,8 +66,8 @@ const toggleWishlist = () => wishlist.toggle(props.movie)
 
 <style scoped>
 .movie-card {
-  flex: 0 0 clamp(140px, 18vw, 200px);
-  min-width: clamp(140px, 16vw, 200px);
+  flex: 0 0 clamp(160px, 20vw, 240px);
+  min-width: clamp(160px, 18vw, 240px);
   cursor: pointer;
   background: #141414;
   border-radius: 12px;
@@ -77,9 +77,16 @@ const toggleWishlist = () => wishlist.toggle(props.movie)
 }
 
 .movie-card:hover {
-  transform: scale(1.08);
+  transform: scale(1.04);
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.55);
   z-index: 1;
+}
+
+@media (max-width: 640px) {
+  .movie-card {
+    flex-basis: clamp(140px, 52vw, 200px);
+    min-width: clamp(140px, 52vw, 200px);
+  }
 }
 
 .poster-wrapper {
