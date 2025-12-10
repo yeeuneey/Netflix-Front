@@ -32,6 +32,7 @@
             v-for="(m, idx) in loopedMovies"
             :key="`${m.id}-${idx}`"
             :movie="m"
+            :rank="props.showRank ? getRank(idx) : undefined"
           />
         </div>
       </div>
@@ -63,6 +64,7 @@ const props = defineProps<{
   path: string;
   actionLabel?: string;
   actionTo?: string;
+  showRank?: boolean;
 }>();
 const emit = defineEmits<{
   (e: 'action'): void;
@@ -153,6 +155,14 @@ const scroll = (direction: 1 | -1) => {
   view.scrollBy({ left: amount * direction, behavior: 'smooth' });
   // optimistic state update
   requestAnimationFrame(() => requestAnimationFrame(updateNav));
+};
+
+const getRank = (idx: number) => {
+  const total = movies.value.length;
+  if (!total) return null;
+  const base = idx - loopCount.value;
+  const normalized = ((base % total) + total) % total;
+  return normalized + 1;
 };
 
 const handleAction = () => {

@@ -28,6 +28,7 @@
     <SectionMovieList
       title="🔥 Trending Now"
       path="/trending/movie/week"
+      :show-rank="true"
     />
 
     <SectionMovieList
@@ -40,6 +41,7 @@
     <SectionMovieList
       title="⭐ Top Rated Movies"
       path="/movie/top_rated"
+      :show-rank="true"
     />
 
     <SectionMovieList
