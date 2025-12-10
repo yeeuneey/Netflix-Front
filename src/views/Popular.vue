@@ -2,15 +2,14 @@
   <div class="popular-page">
     <header class="page-header">
       <div class="title-block">
-        <p class="eyebrow">ROUTE /popular</p>
-        <h1>대세 콘텐츠 (Infinite Scroll)</h1>
+        <p class="eyebrow">인기 만점!</p>
+        <h1>대세 콘텐츠</h1>
         <p class="lede">
-          페이지네이션 없이 스크롤을 끝까지 내리면 자동으로 다음 인기 영화 페이지를 불러옵니다.
+          자동으로 다음 인기 영화 페이지를 로딩합니다.
         </p>
         <div class="badges">
           <span class="badge">Infinite scroll</span>
           <span class="badge">Auto load</span>
-          <span class="badge">Top button</span>
         </div>
       </div>
 
@@ -18,13 +17,10 @@
         <p class="label">현재 상태</p>
         <p class="value">{{ statusText }}</p>
         <div class="meta-row">
-          <span>불러온 영화: {{ movies.length }}</span>
+          <span>로딩 된 영화는 {{ movies.length }} 작품입니다!</span>
           <span v-if="!hasMore">모든 페이지 로드 완료</span>
         </div>
         <div class="actions">
-          <button type="button" class="pill ghost" :disabled="!canScrollTop" @click="scrollToTop">
-            Top으로 이동
-          </button>
           <button v-if="error" type="button" class="pill primary" @click="loadNext">
             다시 시도
           </button>
@@ -37,7 +33,7 @@
         <div>
           <p class="eyebrow small">Popular Movies</p>
           <h2>무한 스크롤 리스트</h2>
-          <p class="desc">스크롤 끝에 닿으면 다음 TMDB 인기 영화 페이지를 자동으로 이어붙입니다.</p>
+          <p class="desc"> </p>
         </div>
       </div>
 
@@ -58,6 +54,16 @@
 
       <div ref="sentinel" class="sentinel" aria-hidden="true"></div>
     </section>
+
+    <button
+      v-if="canScrollTop"
+      type="button"
+      class="top-button"
+      aria-label="Top으로 이동"
+      @click="scrollToTop"
+    >
+      <i class="fa-solid fa-arrow-up"></i>
+    </button>
   </div>
 </template>
 
@@ -79,7 +85,7 @@ const canScrollTop = ref(false);
 const statusText = computed(() => {
   if (error.value) return '로드 실패';
   if (loading.value) return '불러오는 중...';
-  return hasMore.value ? `페이지 ${page.value - 1}까지 불러옴` : '모든 페이지 완료';
+  return hasMore.value ? `페이지 ${page.value - 1}까지 로딩!` : '모든 페이지 완료';
 });
 
 const isSentinelVisible = () => {
@@ -333,6 +339,40 @@ onBeforeUnmount(() => {
   height: 1px;
 }
 
+.top-button {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #ff3d5a, #ff7f66);
+  color: #0b0c14;
+  box-shadow: 0 14px 30px rgba(255, 0, 38, 0.32);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  z-index: 50;
+}
+
+.top-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px rgba(255, 61, 90, 0.4);
+}
+
+.top-button:active {
+  transform: translateY(0);
+}
+
+.top-button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 4px;
+}
+
 .pill {
   padding: 10px 14px;
   border-radius: 12px;
@@ -384,6 +424,12 @@ onBeforeUnmount(() => {
 @media (max-width: 640px) {
   .popular-page {
     margin-top: 68px;
+  }
+  .top-button {
+    right: 16px;
+    bottom: 16px;
+    width: 48px;
+    height: 48px;
   }
 }
 </style>
