@@ -1,25 +1,29 @@
 <!-- src/components/Header.vue -->
 <template>
   <header :class="['main-header', { scrolled: isScrolled }]">
-    <div class="left" @click="go('/')">
-      <i class="fas fa-film logo-icon"></i>
-      <span class="logo-text">NETFLIX FRONT</span>
+    <div class="left">
+      <div class="brand" @click="go('/')">
+        <i class="fas fa-film logo-icon"></i>
+        <span class="logo-text">YENFLIX</span>
+      </div>
+      <nav class="nav-links">
+        <button @click="go('/')" :class="{ active: route.path === '/' }">Home</button>
+        <button @click="go('/popular')" :class="{ active: route.path === '/popular' }">
+          Popular
+        </button>
+        <button @click="go('/wishlist')" :class="{ active: route.path === '/wishlist' }">
+          Wishlist
+        </button>
+      </nav>
     </div>
 
-    <nav class="nav-links">
-      <button @click="go('/')" :class="{ active: route.path === '/' }">Home</button>
-      <button @click="go('/popular')" :class="{ active: route.path === '/popular' }">
-        Popular
+    <div class="actions">
+      <button class="icon-btn" @click="go('/search')" aria-label="검색">
+        <i class="fas fa-magnifying-glass"></i>
       </button>
-      <button @click="go('/search')" :class="{ active: route.path === '/search' }">
-        Search
+      <button class="icon-btn" aria-label="알림">
+        <i class="fas fa-bell"></i>
       </button>
-      <button @click="go('/wishlist')" :class="{ active: route.path === '/wishlist' }">
-        Wishlist
-      </button>
-    </nav>
-
-    <div class="auth">
       <template v-if="!user">
         <button class="ghost" @click="go('/signin')">
           <i class="fas fa-user"></i>
@@ -78,74 +82,97 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(
-    90deg,
-    rgba(10, 10, 20, 0.9),
-    rgba(20, 0, 40, 0.9)
-  );
-  backdrop-filter: blur(8px);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.05) 100%);
+  backdrop-filter: blur(10px);
   color: #f8f8f8;
   z-index: 40;
   transition: background 0.25s ease, height 0.25s ease, box-shadow 0.25s ease;
 }
 .main-header.scrolled {
   height: 56px;
-  background: rgba(4, 4, 10, 0.95);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.55);
+  background: rgba(11, 11, 15, 0.95);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
 }
 
 .left {
   display: flex;
   align-items: center;
+  gap: 0.75rem;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
   gap: 0.4rem;
   cursor: pointer;
 }
 .logo-icon {
-  font-size: 1.4rem;
-  color: #ff3366;
+  font-size: 1.5rem;
+  color: #e50914;
 }
 .logo-text {
   font-weight: 800;
   letter-spacing: 0.08em;
-  font-size: 0.9rem;
+  font-size: 1.25rem;
+  color: #e50914;
 }
 
 .nav-links {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 .nav-links button {
   border: none;
   background: transparent;
   color: #f0f0f0;
   font-size: 0.9rem;
-  padding: 0.35rem 0.8rem;
-  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  border-radius: 10px;
   cursor: pointer;
   transition: background 0.2s, transform 0.2s;
 }
 .nav-links button:hover {
   background: rgba(255, 255, 255, 0.1);
+  color: #e50914;
   transform: translateY(-1px);
 }
 .nav-links button.active {
-  background: #ff3366;
+  background: #e50914;
   color: #fff;
 }
 
-.auth {
+.actions {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f8f8f8;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.icon-btn:hover {
+  background: rgba(229, 9, 20, 0.22);
+  border-color: #e50914;
+  transform: translateY(-1px);
+}
+
 .ghost {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
   padding: 0.3rem 0.8rem;
   border-radius: 999px;
-  border: 1px solid rgba(248, 248, 248, 0.4);
-  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(248, 248, 248, 0.35);
+  background: rgba(255, 255, 255, 0.06);
   color: #f8f8f8;
   cursor: pointer;
   font-size: 0.85rem;
@@ -153,7 +180,8 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
 }
 .ghost:hover {
   background: rgba(255, 255, 255, 0.12);
-  border-color: #fff;
+  border-color: #e50914;
+  color: #e50914;
   transform: translateY(-1px);
 }
 .user-id {
@@ -165,6 +193,19 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
 }
 
 /* 반응형 */
+@media (max-width: 1100px) {
+  .main-header {
+    padding: 0 1.1rem;
+  }
+  .nav-links {
+    gap: 0.5rem;
+  }
+  .nav-links button {
+    font-size: 0.85rem;
+    padding: 0.3rem 0.7rem;
+  }
+}
+
 @media (max-width: 768px) {
   .nav-links {
     display: none;

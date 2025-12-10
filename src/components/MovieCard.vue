@@ -1,29 +1,75 @@
-<!-- src/components/MovieCard.vue -->
 <template>
-  <div
+  <article
     class="movie-card"
-    :class="{ wished: isWished }"
     @click="toggleWishlist"
+    :class="{ wished: isWished }"
   >
     <div class="poster-wrapper">
-      <img v-if="movie.poster_path" :src="imageUrl" :alt="movie.title" />
-      <div v-else class="no-poster">
-        <i class="fas fa-clapperboard"></i>
-        <span>No Image</span>
+      <div class="poster-chrome">
+        <div v-if="rank" class="rank-badge">
+          <span class="rank-num">{{ rank }}</span>
+          <span class="rank-label">TOP 10</span>
+        </div>
+        <button
+          class="wishlist-indicator"
+          type="button"
+          :aria-pressed="isWished"
+          @click.stop="toggleWishlist"
+        >
+          <i :class="['fa-solid', isWished ? 'fa-check' : 'fa-heart']"></i>
+        </button>
+      </div>
+
+      <img
+        class="poster"
+        :src="posterUrl"
+        :alt="movie.title"
+        loading="lazy"
+      />
+
+      <div class="overlay">
+        <div class="badges">
+          <span class="badge rating" v-if="movie.vote_average">
+            ★ {{ movie.vote_average?.toFixed(1) }}
+          </span>
+          <span class="badge date" v-if="movie.release_date">
+            {{ movie.release_date.slice(0, 4) }}
+          </span>
+        </div>
+
+        <div class="overlay-bottom">
+          <p class="overlay-title">{{ movie.title }}</p>
+          <p class="overlay-overview">
+            {{ movie.overview || 'No description available.' }}
+          </p>
+          <div class="overlay-actions">
+            <button type="button" class="circle-btn" aria-label="재생">
+              <i class="fa-solid fa-play"></i>
+            </button>
+            <button
+              type="button"
+              class="circle-btn"
+              aria-label="위시 토글"
+              @click.stop="toggleWishlist"
+            >
+              <i :class="['fa-solid', isWished ? 'fa-check' : 'fa-heart']"></i>
+            </button>
+            <button type="button" class="circle-btn" aria-label="상세 정보">
+              <i class="fa-solid fa-circle-info"></i>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
+
     <div class="info">
       <h3 class="title">{{ movie.title }}</h3>
-      <slot name="extra" />
+      <p class="meta">
+        <span v-if="movie.vote_average">★ {{ movie.vote_average?.toFixed(1) }}</span>
+        <span v-if="movie.release_date">· {{ movie.release_date.slice(0, 4) }}</span>
+      </p>
     </div>
-    <button
-      class="wishlist-badge"
-      :class="{ active: isWished }"
-      @click.stop="toggleWishlist"
-    >
-      <i class="fas fa-heart"></i>
-    </button>
-  </div>
+  </article>
 </template>
 
 <script setup lang="ts">
@@ -31,99 +77,248 @@ import { computed } from 'vue';
 import type { Movie } from '@/types/movie';
 import { useWishlist } from '@/stores/wishlist';
 
-const props = defineProps<{ movie: Movie }>();
-
+const props = defineProps<{ movie: Movie; rank?: number | null }>();
 const wishlist = useWishlist();
 
-const imageUrl = computed(
-  () => `https://image.tmdb.org/t/p/w500${props.movie.poster_path}`
-);
-const isWished = computed(() => wishlist.has(props.movie.id));
+const posterUrl = computed(() => {
+  if (!props.movie.poster_path) {
+    return 'https://placehold.co/300x450/111827/EEE?text=No+Image';
+  }
+  return `https://image.tmdb.org/t/p/w500${props.movie.poster_path}`;
+});
 
-const toggleWishlist = () => {
-  wishlist.toggle(props.movie);
-};
+const isWished = computed(() =>
+  wishlist.items.some((m) => m.id === props.movie.id),
+);
+
+const toggleWishlist = () => wishlist.toggle(props.movie);
 </script>
 
 <style scoped>
 .movie-card {
-  position: relative;
-  border-radius: 16px;
-  overflow: hidden;
-  background: radial-gradient(circle at top left, #39203b, #080808);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+  flex: 0 0 clamp(200px, 18vw, 220px);
+  min-width: clamp(200px, 18vw, 220px);
   cursor: pointer;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border 0.25s ease;
-}
-.movie-card:hover {
-  transform: translateY(-6px) scale(1.03);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.85);
+  background: #141414;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.2s ease;
 }
 
-/* 추천 영화인 경우 다른 디자인 */
-.movie-card.wished {
-  border: 2px solid #ff3366;
-  box-shadow: 0 0 18px rgba(255, 51, 102, 0.8);
+.movie-card:hover {
+  transform: scale(1.03);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+  z-index: 1;
+}
+
+@media (max-width: 640px) {
+  .movie-card {
+    flex-basis: clamp(170px, 58vw, 200px);
+    min-width: clamp(170px, 58vw, 200px);
+  }
 }
 
 .poster-wrapper {
+  position: relative;
+  width: 100%;
   aspect-ratio: 2 / 3;
   overflow: hidden;
+  background: #0f0f0f;
 }
-.poster-wrapper img {
+
+.poster-chrome {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 10px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.poster-chrome::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, transparent 35%);
+  z-index: -1;
+}
+
+.poster {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.25s ease;
-}
-.movie-card:hover .poster-wrapper img {
-  transform: scale(1.08); /* hover 시 확대 */
+  display: block;
+  transition: transform 0.3s ease;
 }
 
-.no-poster {
-  width: 100%;
-  height: 100%;
-  background: #222;
-  color: #aaa;
+.movie-card:hover .poster {
+  transform: scale(1.04);
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  padding: 10px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.2) 5%, rgba(0, 0, 0, 0.82) 100%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.movie-card:hover .overlay {
+  opacity: 1;
+}
+
+.overlay-bottom {
+  display: grid;
+  gap: 8px;
+}
+
+.overlay-title {
+  margin: 0;
+  font-weight: 800;
+  color: #fff;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.overlay-overview {
+  margin: 0;
+  font-size: 12px;
+  color: #e5e5e5;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.overlay-actions {
+  display: grid;
+  grid-auto-flow: column;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.circle-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.3rem;
-  font-size: 0.9rem;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.circle-btn:hover {
+  transform: translateY(-1px);
+  background: #e50914;
+  border-color: #e50914;
+}
+
+.badges {
+  display: flex;
+  gap: 6px;
+}
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+}
+
+.badge.rating {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.badge.date {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.wishlist-indicator {
+  pointer-events: auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.wishlist-indicator:hover {
+  transform: scale(1.05);
+  background: #e50914;
+  border-color: #e50914;
+}
+
+.rank-badge {
+  pointer-events: auto;
+  padding: 8px 11px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(229, 9, 20, 0.9), rgba(229, 9, 20, 0.6));
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  min-width: 78px;
+  justify-content: center;
+}
+
+.rank-num {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.rank-label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
 }
 
 .info {
-  padding: 0.6rem 0.7rem 0.8rem;
-}
-.title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #fff;
+  padding: 8px 10px 12px;
+  background: #0f0f0f;
 }
 
-/* 우측 상단 하트 배지 */
-.wishlist-badge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  border-radius: 999px;
-  border: none;
-  width: 32px;
-  height: 32px;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.title {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 4px;
   color: #f5f5f5;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.2s, color 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.wishlist-badge.active {
-  background: #ff3366;
-  color: #fff;
+
+.meta {
+  margin: 0;
+  font-size: 12px;
+  color: #c9c9c9;
+  display: flex;
+  gap: 6px;
 }
-.wishlist-badge:hover {
-  transform: scale(1.08);
+
+.wished {
+  border: 2px solid #e50914;
 }
 </style>
