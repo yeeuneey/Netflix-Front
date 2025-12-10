@@ -34,18 +34,29 @@ onMounted(() => load());
 
 <style scoped>
 .section {
-  padding: 30px 20px;
+  padding: 24px 20px;
 }
 .section h2 {
   margin-bottom: 15px;
   font-size: 20px;
-  font-weight: bold;
+  font-weight: 800;
 }
 .movie-list {
   display: flex;
-  gap: 14px;
+  gap: 12px;
   overflow-x: auto;
-  padding-bottom: 10px;
+  padding: 6px 4px 14px;
+  scroll-snap-type: x mandatory;
+}
+.movie-list::-webkit-scrollbar {
+  height: 6px;
+}
+.movie-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+}
+.movie-list > * {
+  scroll-snap-align: start;
 }
 .error {
   color: #ff4444;
