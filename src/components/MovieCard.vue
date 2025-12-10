@@ -20,16 +20,23 @@
             {{ movie.release_date.slice(0, 4) }}
           </span>
         </div>
-        <button type="button" class="cta">
-          {{ isWished ? 'Remove' : 'Add' }}
-        </button>
+        <div class="overlay-bottom">
+          <p class="overlay-title">{{ movie.title }}</p>
+          <p class="overlay-overview">
+            {{ movie.overview || 'No description available.' }}
+          </p>
+          <button type="button" class="cta">
+            {{ isWished ? 'Remove' : 'Add' }}
+          </button>
+        </div>
       </div>
     </div>
 
     <div class="info">
       <h3 class="title">{{ movie.title }}</h3>
-      <p class="overview">
-        {{ movie.overview || 'No description available.' }}
+      <p class="meta">
+        <span v-if="movie.vote_average">★ {{ movie.vote_average?.toFixed(1) }}</span>
+        <span v-if="movie.release_date">· {{ movie.release_date.slice(0, 4) }}</span>
       </p>
     </div>
   </article>
@@ -59,8 +66,8 @@ const toggleWishlist = () => wishlist.toggle(props.movie)
 
 <style scoped>
 .movie-card {
-  flex: 0 0 200px;
-  min-width: 180px;
+  flex: 0 0 180px;
+  min-width: 170px;
   cursor: pointer;
   background: #141414;
   border-radius: 12px;
@@ -97,13 +104,37 @@ const toggleWishlist = () => wishlist.toggle(props.movie)
   flex-direction: column;
   justify-content: space-between;
   padding: 10px;
-  background: linear-gradient(180deg, transparent 30%, rgba(0, 0, 0, 0.65) 100%);
+  background: linear-gradient(180deg, transparent 30%, rgba(0, 0, 0, 0.75) 100%);
   opacity: 0;
   transition: opacity 0.25s ease;
 }
 
 .movie-card:hover .overlay {
   opacity: 1;
+}
+
+.overlay-bottom {
+  display: grid;
+  gap: 6px;
+}
+
+.overlay-title {
+  margin: 0;
+  font-weight: 800;
+  color: #fff;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.overlay-overview {
+  margin: 0;
+  font-size: 12px;
+  color: #e5e5e5;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .badges {
@@ -139,26 +170,26 @@ const toggleWishlist = () => wishlist.toggle(props.movie)
 }
 
 .info {
-  padding: 10px;
+  padding: 8px 10px 12px;
+  background: #0f0f0f;
 }
 
 .title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   margin: 0 0 4px;
   color: #f5f5f5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.overview {
+.meta {
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
   color: #c9c9c9;
-  line-height: 1.45;
-  max-height: 52px;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
+  display: flex;
+  gap: 6px;
 }
 
 .wished {
