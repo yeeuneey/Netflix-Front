@@ -33,6 +33,8 @@
     <SectionMovieList
       title="🎬 Popular Movies"
       path="/movie/popular"
+      action-label="전체보기"
+      action-to="/popular"
     />
 
     <SectionMovieList

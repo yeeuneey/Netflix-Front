@@ -2,6 +2,15 @@
   <section class="section">
     <div class="section__header">
       <h2>{{ title }}</h2>
+      <button
+        v-if="actionLabel"
+        type="button"
+        class="section__action"
+        @click="handleAction"
+      >
+        <span class="icon">&#9654;</span>
+        <span>{{ actionLabel }}</span>
+      </button>
     </div>
 
     <Loading v-if="loading" />
@@ -11,9 +20,10 @@
         class="nav-btn prev"
         type="button"
         aria-label="이전"
+        :disabled="!canPrev"
         @click="scroll(-1)"
       >
-        ‹
+        &lsaquo;
       </button>
 
       <div class="slider-window" ref="viewport" @scroll="updateNav">
@@ -30,9 +40,10 @@
         class="nav-btn next"
         type="button"
         aria-label="다음"
+        :disabled="!canNext"
         @click="scroll(1)"
       >
-        ›
+        &rsaquo;
       </button>
     </div>
 
@@ -42,6 +53,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { useMovies } from '@/composables/useMovies';
 import MovieCard from './MovieCard.vue';
 import Loading from './Loading.vue';
@@ -49,8 +61,14 @@ import Loading from './Loading.vue';
 const props = defineProps<{
   title: string;
   path: string;
+  actionLabel?: string;
+  actionTo?: string;
+}>();
+const emit = defineEmits<{
+  (e: 'action'): void;
 }>();
 
+const router = useRouter();
 const { movies, error, loading, load } = useMovies(props.path);
 
 const viewport = ref<HTMLElement | null>(null);
@@ -137,6 +155,14 @@ const scroll = (direction: 1 | -1) => {
   requestAnimationFrame(() => requestAnimationFrame(updateNav));
 };
 
+const handleAction = () => {
+  if (props.actionTo) {
+    router.push(props.actionTo);
+    return;
+  }
+  emit('action');
+};
+
 const handleResize = () => updateNav();
 
 onMounted(async () => {
@@ -175,12 +201,35 @@ watch(
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  gap: 12px;
+  margin-bottom: 10px;
 }
 .section h2 {
   margin: 0;
   font-size: 20px;
   font-weight: 800;
+}
+.section__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.section__action .icon {
+  font-size: 12px;
+}
+.section__action:hover {
+  background: #78787829;
+  border-color: #ff000d;
+  transform: translateY(-1px);
 }
 
 .slider {
@@ -193,15 +242,16 @@ watch(
 .slider-window {
   overflow-x: auto;
   overflow-y: visible;
-  padding: 8px 4px 14px;
+  padding: 6px 2px 10px;
   scroll-snap-type: x mandatory;
   overscroll-behavior-inline: contain;
+  scroll-padding-inline: 12px;
 }
 
 .movie-track {
   display: flex;
-  gap: 14px;
-  padding: 4px 6px 8px;
+  gap: 12px;
+  padding: 2px 4px 6px;
   scroll-snap-type: x mandatory;
 }
 .movie-track > * {
@@ -221,18 +271,18 @@ watch(
   justify-content: center;
   padding: 8px 10px;
   min-width: 24px;
-  min-height: 70px;
+  min-height: 64px;
   border: none;
   background: transparent;
   color: #ffffff;
   cursor: pointer;
   transition: transform 0.2s ease, color 0.2s ease, opacity 0.2s ease, background 0.2s ease;
-  font-size: 50px;
+  font-size: 42px;
   line-height: 1;
 }
 .nav-btn:hover {
   transform: translateY(0px) scale(1.25);
-  color: hsl(0, 100%, 50%);
+  color: #e50914;
 }
 .nav-btn:disabled {
   opacity: 0.25;

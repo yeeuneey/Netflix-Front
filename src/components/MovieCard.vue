@@ -66,8 +66,8 @@ const toggleWishlist = () => wishlist.toggle(props.movie)
 
 <style scoped>
 .movie-card {
-  flex: 0 0 clamp(160px, 20vw, 240px);
-  min-width: clamp(160px, 18vw, 240px);
+  flex: 0 0 clamp(200px, 18vw, 220px);
+  min-width: clamp(200px, 18vw, 220px);
   cursor: pointer;
   background: #141414;
   border-radius: 12px;
@@ -84,8 +84,8 @@ const toggleWishlist = () => wishlist.toggle(props.movie)
 
 @media (max-width: 640px) {
   .movie-card {
-    flex-basis: clamp(140px, 52vw, 200px);
-    min-width: clamp(140px, 52vw, 200px);
+    flex-basis: clamp(170px, 58vw, 200px);
+    min-width: clamp(170px, 58vw, 200px);
   }
 }
 
