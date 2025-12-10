@@ -3,7 +3,7 @@
   <header :class="['main-header', { scrolled: isScrolled }]">
     <div class="left" @click="go('/')">
       <i class="fas fa-film logo-icon"></i>
-      <span class="logo-text">NETFLIX FRONT</span>
+      <span class="logo-text">YENFLIX</span>
     </div>
 
     <nav class="nav-links">
