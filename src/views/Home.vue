@@ -73,9 +73,9 @@ const heroStyle = computed(() => {
 
 <style scoped>
 .home {
-  margin-top: 80px;
+  margin-top: 1px;
   display: grid;
-  gap: 24px;
+  gap: 1px;
 }
 
 .hero {
@@ -170,8 +170,8 @@ const heroStyle = computed(() => {
 
 @media (max-width: 1024px) {
   .home {
-    gap: 18px;
-    margin-top: 72px;
+    gap: 1px;
+    margin-top: 1x;
   }
   .hero__content {
     max-width: 100%;
@@ -180,7 +180,7 @@ const heroStyle = computed(() => {
 
 @media (max-width: 768px) {
   .home {
-    margin-top: 68px;
+    margin-top: 1px;
   }
   .hero {
     min-height: 360px;
@@ -193,8 +193,8 @@ const heroStyle = computed(() => {
 
 @media (max-width: 560px) {
   .home {
-    gap: 14px;
-    margin-top: 64px;
+    gap: 1px;
+    margin-top: 1px;
   }
   .hero {
     min-height: 320px;
