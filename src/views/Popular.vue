@@ -47,11 +47,14 @@
 
       <div class="loader" v-if="loading">
         <i class="fa-solid fa-spinner fa-spin"></i>
-        <span>다음 페이지 불러오는 중...</span>
+        <span>
+          다음 페이지 로딩 중
+          <span class="dots" aria-hidden="true">...</span>
+        </span>
       </div>
 
       <p class="error" v-if="error">{{ error }}</p>
-      <p class="end" v-else-if="!hasMore">마지막 페이지까지 모두 불러왔어요.</p>
+      <p class="end" v-else-if="!hasMore">마지막 페이지까지 모두 로딩 완료했어요.</p>
 
       <div ref="sentinel" class="sentinel" aria-hidden="true"></div>
     </section>
@@ -79,10 +82,30 @@ const statusText = computed(() => {
   return hasMore.value ? `페이지 ${page.value - 1}까지 불러옴` : '모든 페이지 완료';
 });
 
+const isSentinelVisible = () => {
+  const el = sentinel.value;
+  if (!el) return false;
+  const rect = el.getBoundingClientRect();
+  return rect.top <= window.innerHeight && rect.bottom >= 0;
+};
+
+const maybeLoadMoreIfVisible = () => {
+  if (!hasMore.value || loading.value) return;
+  if (!isSentinelVisible()) return;
+  requestAnimationFrame(() => {
+    if (hasMore.value && !loading.value && isSentinelVisible()) {
+      loadNext();
+    }
+  });
+};
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const loadNext = async () => {
   if (loading.value || !hasMore.value) return;
   loading.value = true;
   error.value = null;
+  const startedAt = performance.now();
 
   try {
     const data = await fetchMoviesPage('/movie/popular', { page: page.value });
@@ -99,7 +122,13 @@ const loadNext = async () => {
     console.error(e);
     error.value = '인기 영화 목록을 불러오지 못했습니다. 다시 시도해 주세요.';
   } finally {
+    const elapsed = performance.now() - startedAt;
+    const remaining = Math.max(0, 2500 - elapsed);
+    if (remaining) {
+      await delay(remaining);
+    }
     loading.value = false;
+    maybeLoadMoreIfVisible();
   }
 };
 
@@ -115,7 +144,7 @@ const setupObserver = () => {
         }
       });
     },
-    { root: null, threshold: 0.1 }
+    { root: null, threshold: 0, rootMargin: '200px 0px 200px 0px' }
   );
 
   observer.value.observe(sentinel.value);
@@ -253,11 +282,43 @@ onBeforeUnmount(() => {
 .end,
 .error {
   margin: 6px 0 0;
-  color: #cbd3e8;
+  color: #ff0019;
   display: inline-flex;
   gap: 8px;
   align-items: center;
   font-weight: 700;
+}
+
+.loader {
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+}
+
+.dots {
+  display: inline-block;
+  width: 22px;
+  text-align: left;
+}
+
+.dots::after {
+  content: '...';
+}
+
+@keyframes dots {
+  0% {
+    width: 0;
+  }
+  25% {
+    width: 7px;
+  }
+  50% {
+    width: 14px;
+  }
+  75%,
+  100% {
+    width: 22px;
+  }
 }
 
 .error {
