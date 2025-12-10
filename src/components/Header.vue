@@ -208,10 +208,19 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
 
 @media (max-width: 768px) {
   .nav-links {
-    display: none;
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    padding: 0 0.25rem;
+  }
+  .nav-links button {
+    font-size: 0.85rem;
+    padding: 0.25rem 0.6rem;
+    white-space: nowrap;
   }
   .logo-text {
-    display: none;
+    display: inline;
+    font-size: 1.05rem;
   }
 }
 </style>
