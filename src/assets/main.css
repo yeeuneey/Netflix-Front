@@ -1,0 +1,39 @@
+/* src/assets/main.css */
+
+:root {
+  color-scheme: dark;
+  --bg: #05040a;
+  --fg: #f8f8f8;
+  --accent: #ff3366;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+  background: radial-gradient(circle at top, #201020 0, #05040a 50%, #000 100%);
+  color: var(--fg);
+}
+
+/* 포스터 그리드 공통 */
+.movie-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+  padding: 1.25rem 1.5rem 2rem;
+}
+
+/* 반응형: 모바일에서 여백 줄이기 */
+@media (max-width: 768px) {
+  .movie-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    padding-inline: 0.75rem;
+  }
+}
