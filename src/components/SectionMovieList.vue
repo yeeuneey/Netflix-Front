@@ -78,6 +78,7 @@ const track = ref<HTMLElement | null>(null);
 const loopCount = ref(1);
 const canPrev = ref(false);
 const canNext = ref(false);
+const snapTimer = ref<number | null>(null);
 
 const loopedMovies = computed(() => {
   const count = Math.max(1, loopCount.value);
@@ -140,6 +141,14 @@ const updateNav = () => {
   const overflow = scrollWidth > clientWidth + 8;
   canPrev.value = overflow && scrollLeft >= 0;
   canNext.value = overflow && scrollLeft <= scrollWidth;
+
+  if (snapTimer.value) {
+    window.clearTimeout(snapTimer.value);
+  }
+  snapTimer.value = window.setTimeout(() => {
+    snapTimer.value = null;
+    snapToNearest();
+  }, 140);
 };
 
 const scroll = (direction: 1 | -1) => {
@@ -155,6 +164,14 @@ const scroll = (direction: 1 | -1) => {
   view.scrollBy({ left: amount * direction, behavior: 'smooth' });
   // optimistic state update
   requestAnimationFrame(() => requestAnimationFrame(updateNav));
+};
+
+const snapToNearest = () => {
+  const view = viewport.value;
+  const step = getStep();
+  if (!view || !step) return;
+  const target = Math.round(view.scrollLeft / step) * step;
+  view.scrollTo({ left: target, behavior: 'smooth' });
 };
 
 const getRank = (idx: number) => {
@@ -187,6 +204,9 @@ onMounted(async () => {
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize);
+  if (snapTimer.value) {
+    window.clearTimeout(snapTimer.value);
+  }
 });
 
 watch(
@@ -204,7 +224,7 @@ watch(
 
 <style scoped>
 .section {
-  padding: 20px 0;
+  padding: 16px 0;
   position: relative;
 }
 .section__header {
@@ -250,22 +270,44 @@ watch(
 }
 
 .slider-window {
+  position: relative;
   overflow-x: auto;
   overflow-y: visible;
-  padding: 6px 2px 10px;
+  padding: 10px 4px 12px;
   scroll-snap-type: x mandatory;
   overscroll-behavior-inline: contain;
-  scroll-padding-inline: 12px;
+  scroll-padding-inline: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+.slider-window::before,
+.slider-window::after {
+  content: '';
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  width: 48px;
+  pointer-events: none;
+  z-index: 1;
+}
+.slider-window::before {
+  left: 0;
+  background: linear-gradient(90deg, rgba(11, 11, 15, 1), rgba(11, 11, 15, 0));
+}
+.slider-window::after {
+  right: 0;
+  background: linear-gradient(270deg, rgba(11, 11, 15, 1), rgba(11, 11, 15, 0));
 }
 
 .movie-track {
   display: flex;
-  gap: 12px;
-  padding: 2px 4px 6px;
+  gap: 14px;
+  padding: 2px 8px 8px;
   scroll-snap-type: x mandatory;
 }
 .movie-track > * {
   scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
 .slider-window::-webkit-scrollbar {
   height: 6px;
@@ -279,20 +321,26 @@ watch(
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 10px;
-  min-width: 24px;
-  min-height: 64px;
-  border: none;
-  background: transparent;
+  padding: 10px 12px;
+  min-width: 32px;
+  min-height: 72px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.45);
   color: #ffffff;
   cursor: pointer;
-  transition: transform 0.2s ease, color 0.2s ease, opacity 0.2s ease, background 0.2s ease;
-  font-size: 42px;
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+  transition: transform 0.2s ease, color 0.2s ease, opacity 0.2s ease, background 0.2s ease,
+    border-color 0.2s ease, box-shadow 0.2s ease;
+  font-size: 34px;
   line-height: 1;
 }
 .nav-btn:hover {
-  transform: translateY(0px) scale(1.25);
+  transform: translateY(0px) scale(1.1);
   color: #e50914;
+  border-color: rgba(229, 9, 20, 0.6);
+  background: rgba(229, 9, 20, 0.12);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
 }
 .nav-btn:disabled {
   opacity: 0.25;
