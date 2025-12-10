@@ -13,8 +13,14 @@
           <span v-if="hero.vote_average">★ {{ hero.vote_average?.toFixed(1) }}</span>
         </div>
         <div class="hero__actions">
-          <button type="button" class="btn play">▶ 재생</button>
-          <button type="button" class="btn info">ℹ 상세 정보</button>
+          <button type="button" class="btn play">
+            <i class="fa-solid fa-play"></i>
+            재생
+          </button>
+          <button type="button" class="btn info">
+            <i class="fa-solid fa-circle-info"></i>
+            상세 정보
+          </button>
         </div>
       </div>
     </section>
