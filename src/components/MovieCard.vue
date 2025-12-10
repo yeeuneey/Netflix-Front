@@ -5,19 +5,20 @@
     :class="{ wished: isWished }"
   >
     <div class="poster-wrapper">
-      <div v-if="rank" class="rank-badge">
-        <span class="rank-num">{{ rank }}</span>
-        <span class="rank-label">TOP 10</span>
+      <div class="poster-chrome">
+        <div v-if="rank" class="rank-badge">
+          <span class="rank-num">{{ rank }}</span>
+          <span class="rank-label">TOP 10</span>
+        </div>
+        <button
+          class="wishlist-indicator"
+          type="button"
+          :aria-pressed="isWished"
+          @click.stop="toggleWishlist"
+        >
+          <i :class="['fa-solid', isWished ? 'fa-check' : 'fa-heart']"></i>
+        </button>
       </div>
-
-      <button
-        class="wishlist-indicator"
-        type="button"
-        :aria-pressed="isWished"
-        @click.stop="toggleWishlist"
-      >
-        <i :class="['fa-solid', isWished ? 'fa-check' : 'fa-heart']"></i>
-      </button>
 
       <img
         class="poster"
@@ -102,12 +103,12 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
   border-radius: 12px;
   overflow: hidden;
   position: relative;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.2s ease;
 }
 
 .movie-card:hover {
-  transform: scale(1.04);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+  transform: scale(1.03);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
   z-index: 1;
 }
 
@@ -126,6 +127,25 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
   background: #0f0f0f;
 }
 
+.poster-chrome {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 10px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.poster-chrome::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, transparent 35%);
+  z-index: -1;
+}
+
 .poster {
   width: 100%;
   height: 100%;
@@ -135,7 +155,7 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
 }
 
 .movie-card:hover .poster {
-  transform: scale(1.05);
+  transform: scale(1.04);
 }
 
 .overlay {
@@ -145,7 +165,7 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
   flex-direction: column;
   justify-content: space-between;
   padding: 10px;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.35) 10%, rgba(0, 0, 0, 0.78) 100%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.2) 5%, rgba(0, 0, 0, 0.82) 100%);
   opacity: 0;
   transition: opacity 0.25s ease;
 }
@@ -183,6 +203,7 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
   grid-auto-flow: column;
   gap: 10px;
   align-items: center;
+  justify-content: flex-start;
 }
 
 .circle-btn {
@@ -228,14 +249,12 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
 }
 
 .wishlist-indicator {
-  position: absolute;
-  top: 8px;
-  right: 8px;
+  pointer-events: auto;
   width: 32px;
   height: 32px;
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.55);
   color: #fff;
   display: inline-flex;
   align-items: center;
@@ -252,18 +271,18 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
 }
 
 .rank-badge {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  padding: 6px 10px;
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.65);
+  pointer-events: auto;
+  padding: 8px 11px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(229, 9, 20, 0.9), rgba(229, 9, 20, 0.6));
   color: #fff;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  z-index: 2;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  min-width: 78px;
+  justify-content: center;
 }
 
 .rank-num {
