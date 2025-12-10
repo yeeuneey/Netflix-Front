@@ -69,20 +69,14 @@ const heroStyle = computed(() => {
 
 <style scoped>
 .home {
-  margin-top: 90px; /* header height offset */
-}
-</style>
-
-<style scoped>
-.home {
-  margin-top: 72px;
+  margin-top: 80px;
   display: grid;
-  gap: 16px;
+  gap: 24px;
 }
 
 .hero {
   position: relative;
-  min-height: 420px;
+  min-height: clamp(340px, 55vw, 520px);
   border-radius: 16px;
   overflow: hidden;
   background-size: cover;
@@ -103,8 +97,8 @@ const heroStyle = computed(() => {
 .hero__content {
   position: relative;
   z-index: 2;
-  padding: 32px 28px;
-  max-width: 640px;
+  padding: clamp(22px, 4vw, 32px) clamp(18px, 4vw, 28px);
+  max-width: min(640px, 70vw);
   display: grid;
   gap: 12px;
 }
@@ -170,12 +164,50 @@ const heroStyle = computed(() => {
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
 }
 
-@media (max-width: 768px) {
-  .hero {
-    min-height: 360px;
+@media (max-width: 1024px) {
+  .home {
+    gap: 18px;
+    margin-top: 72px;
   }
   .hero__content {
-    padding: 22px 18px;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .home {
+    margin-top: 68px;
+  }
+  .hero {
+    min-height: 360px;
+    border-radius: 14px;
+  }
+  .hero__desc {
+    -webkit-line-clamp: 4;
+  }
+}
+
+@media (max-width: 560px) {
+  .home {
+    gap: 14px;
+    margin-top: 64px;
+  }
+  .hero {
+    min-height: 320px;
+    align-items: flex-end;
+  }
+  .hero__content {
+    padding: 18px 14px 20px;
+    gap: 10px;
+  }
+  .hero__title {
+    font-size: clamp(24px, 8vw, 28px);
+  }
+  .hero__actions {
+    gap: 8px;
+  }
+  .btn {
+    padding: 9px 14px;
   }
 }
 </style>

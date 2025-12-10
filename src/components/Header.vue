@@ -165,6 +165,19 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
 }
 
 /* 반응형 */
+@media (max-width: 1100px) {
+  .main-header {
+    padding: 0 1.1rem;
+  }
+  .nav-links {
+    gap: 0.5rem;
+  }
+  .nav-links button {
+    font-size: 0.85rem;
+    padding: 0.3rem 0.7rem;
+  }
+}
+
 @media (max-width: 768px) {
   .nav-links {
     display: none;

@@ -38,9 +38,9 @@ a {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px 24px 48px;
+  width: 100%;
+  margin: 0;
+  padding: 20px 32px 48px;
   gap: 32px;
 }
 
@@ -295,5 +295,19 @@ a {
   .actions {
     width: 100%;
     justify-content: flex-end;
+  }
+}
+
+@media (max-width: 1024px) {
+  .app-shell {
+    padding: 18px 20px 42px;
+    gap: 28px;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    padding: 14px 12px 32px;
+    gap: 24px;
   }
 }
