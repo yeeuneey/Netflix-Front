@@ -1,30 +1,32 @@
-<script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
+  <div class="app-shell">
+    <Header />
+
+    <main class="page-container">
+      <Transition name="route-fade" mode="out-in">
+        <RouterView />
+      </Transition>
+    </main>
   </div>
-  <HelloWorld msg="Vite + Vue" />
 </template>
 
+<script setup lang="ts">
+import Header from '@/components/Header.vue';
+</script>
+
 <style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+.page-container {
+  padding-top: 72px; /* 고정 헤더 높이 보정 */
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+
+/* 라우터 전환 애니메이션 */
+.route-fade-enter-active,
+.route-fade-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+.route-fade-enter-from,
+.route-fade-leave-to {
+  opacity: 0;
+  transform: translateY(4px);
 }
 </style>
