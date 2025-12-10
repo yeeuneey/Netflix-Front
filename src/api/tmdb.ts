@@ -21,3 +21,20 @@ export async function fetchMovies(
   });
   return data.results ?? [];
 }
+
+export type MoviesPage = {
+  page: number;
+  total_pages: number;
+  total_results: number;
+  results: Movie[];
+};
+
+export async function fetchMoviesPage(
+  path: string,
+  extraParams: Record<string, string | number> = {}
+): Promise<MoviesPage> {
+  const { data } = await client.get(path, {
+    params: extraParams,
+  });
+  return data;
+}
