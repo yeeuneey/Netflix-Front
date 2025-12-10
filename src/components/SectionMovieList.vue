@@ -29,8 +29,8 @@
       <div class="slider-window" ref="viewport" @scroll="updateNav">
         <div class="movie-track" ref="track">
           <MovieCard
-            v-for="(m, idx) in loopedMovies"
-            :key="`${m.id}-${idx}`"
+            v-for="(m, idx) in movies"
+            :key="m.id"
             :movie="m"
             :rank="props.showRank ? getRank(idx) : undefined"
           />
@@ -75,18 +75,9 @@ const { movies, error, loading, load } = useMovies(props.path);
 
 const viewport = ref<HTMLElement | null>(null);
 const track = ref<HTMLElement | null>(null);
-const loopCount = ref(1);
 const canPrev = ref(false);
 const canNext = ref(false);
 const snapTimer = ref<number | null>(null);
-
-const loopedMovies = computed(() => {
-  const count = Math.max(1, loopCount.value);
-  if (!movies.value.length) return [];
-  const head = movies.value.slice(-count);
-  const tail = movies.value.slice(0, count);
-  return [...head, ...movies.value, ...tail];
-});
 
 const getStep = () => {
   const list = track.value;
@@ -98,49 +89,14 @@ const getStep = () => {
   return cardWidth + gap;
 };
 
-const measureVisible = () => {
-  const view = viewport.value;
-  const step = getStep();
-  if (!view || !step) return;
-  const perView = Math.max(1, Math.floor(view.clientWidth / step));
-  loopCount.value = perView;
-};
-
-const syncToReal = () => {
-  const view = viewport.value;
-  const step = getStep();
-  if (!view || !step || !movies.value.length) return;
-  view.scrollLeft = step * loopCount.value;
-  updateNav();
-};
-
-const handleLoop = () => {
-  const view = viewport.value;
-  const step = getStep();
-  const total = movies.value.length;
-  if (!view || !step || !total) return;
-
-  const prefix = loopCount.value * step;
-  const realSpan = total * step;
-  const tailStart = prefix + realSpan;
-  const x = view.scrollLeft;
-
-  // when reaching cloned head/tail, jump back into real list span
-  if (x >= tailStart) {
-    view.scrollLeft = x - realSpan;
-  } else if (x <= prefix - step) {
-    view.scrollLeft = x + realSpan;
-  }
-};
-
 const updateNav = () => {
-  handleLoop();
   const el = viewport.value;
   if (!el) return;
   const { scrollLeft, scrollWidth, clientWidth } = el;
   const overflow = scrollWidth > clientWidth + 8;
-  canPrev.value = overflow && scrollLeft >= 0;
-  canNext.value = overflow && scrollLeft <= scrollWidth;
+  const maxScroll = scrollWidth - clientWidth;
+  canPrev.value = overflow && scrollLeft > 0;
+  canNext.value = overflow && scrollLeft < maxScroll;
 
   if (snapTimer.value) {
     window.clearTimeout(snapTimer.value);
@@ -159,11 +115,10 @@ const scroll = (direction: 1 | -1) => {
   const step = getStep();
   if (!step) return;
   const perView = Math.max(1, Math.floor(view.clientWidth / step));
-  const amount = step * perView;
+  const jumpSize = Math.max(3, Math.ceil(perView * 1.6)); // jump multiple cards at once
+  const amount = step * jumpSize;
 
   view.scrollBy({ left: amount * direction, behavior: 'smooth' });
-  // optimistic state update
-  requestAnimationFrame(() => requestAnimationFrame(updateNav));
 };
 
 const snapToNearest = () => {
@@ -175,11 +130,8 @@ const snapToNearest = () => {
 };
 
 const getRank = (idx: number) => {
-  const total = movies.value.length;
-  if (!total) return null;
-  const base = idx - loopCount.value;
-  const normalized = ((base % total) + total) % total;
-  return normalized + 1;
+  if (!movies.value.length) return null;
+  return idx + 1;
 };
 
 const handleAction = () => {
@@ -195,9 +147,6 @@ const handleResize = () => updateNav();
 onMounted(async () => {
   await load();
   await nextTick();
-  measureVisible();
-  await nextTick();
-  syncToReal();
   updateNav();
   window.addEventListener('resize', handleResize);
 });
@@ -214,9 +163,6 @@ watch(
   async (len) => {
     if (!len) return;
     await nextTick();
-    measureVisible();
-    await nextTick();
-    syncToReal();
     updateNav();
   },
 );
@@ -267,12 +213,34 @@ watch(
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
+  gap: 10px;
+  --nav-offset: 64px;
+  overflow: visible;
+}
+.slider::before,
+.slider::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: 68px;
+  pointer-events: none;
+  z-index: 3;
+  transition: opacity 0.2s ease;
+}
+.slider::before {
+  left: var(--nav-offset);
+  background: linear-gradient(90deg, rgba(9, 9, 12, 0.92), rgba(9, 9, 12, 0));
+}
+.slider::after {
+  right: var(--nav-offset);
+  background: linear-gradient(270deg, rgba(9, 9, 12, 0.92), rgba(9, 9, 12, 0));
 }
 
 .slider-window {
   position: relative;
   overflow-x: auto;
-  overflow-y: visible;
+  overflow-y: hidden;
   padding: 10px 4px 12px;
   scroll-snap-type: x mandatory;
   overscroll-behavior-inline: contain;
@@ -280,23 +248,18 @@ watch(
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
 }
-.slider-window::before,
-.slider-window::after {
-  content: '';
-  position: absolute;
-  top: 6px;
-  bottom: 6px;
-  width: 48px;
-  pointer-events: none;
-  z-index: 1;
+
+.slider-window::-webkit-scrollbar {
+  height: 4px;
 }
-.slider-window::before {
-  left: 0;
-  background: linear-gradient(90deg, rgba(11, 11, 15, 1), rgba(11, 11, 15, 0));
+.slider-window::-webkit-scrollbar-thumb {
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.1), rgba(229, 9, 20, 0.35));
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
 }
-.slider-window::after {
-  right: 0;
-  background: linear-gradient(270deg, rgba(11, 11, 15, 1), rgba(11, 11, 15, 0));
+.slider-window::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 999px;
 }
 
 .movie-track {
@@ -309,43 +272,47 @@ watch(
   scroll-snap-align: start;
   scroll-snap-stop: always;
 }
-.slider-window::-webkit-scrollbar {
-  height: 6px;
-}
-.slider-window::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 999px;
-}
 
 .nav-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 12px;
-  min-width: 32px;
-  min-height: 72px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.45);
-  color: #ffffff;
+  padding: 14px;
+  min-width: 46px;
+  min-height: 86px;
+  border: 0;
+  background: rgba(16, 16, 18, 0.78);
+  color: #f6f6f6;
   cursor: pointer;
-  border-radius: 12px;
-  backdrop-filter: blur(4px);
-  transition: transform 0.2s ease, color 0.2s ease, opacity 0.2s ease, background 0.2s ease,
-    border-color 0.2s ease, box-shadow 0.2s ease;
-  font-size: 34px;
+  border-radius: 18px;
+  backdrop-filter: blur(10px);
+  transition: transform 0.18s ease, opacity 0.2s ease, box-shadow 0.22s ease,
+    background 0.22s ease, color 0.18s ease;
+  font-size: 36px;
   line-height: 1;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+  filter: drop-shadow(0 12px 26px rgba(0, 0, 0, 0.28));
+  overflow: hidden;
+  z-index: 2;
 }
 .nav-btn:hover {
-  transform: translateY(0px) scale(1.1);
-  color: #e50914;
-  border-color: rgba(229, 9, 20, 0.6);
-  background: rgba(229, 9, 20, 0.12);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+  transform: translateY(-1px) scale(1.2);
+  color: #ff3b3b;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.55), 0 10px 24px rgba(229, 9, 20, 0.16);
+  filter: drop-shadow(0 14px 30px rgba(0, 0, 0, 0.32));
+}
+.nav-btn:active {
+  transform: translateY(0px) scale(1.02);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.3));
 }
 .nav-btn:disabled {
-  opacity: 0.25;
+  opacity: 0.45;
   cursor: default;
   transform: none;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.25));
 }
 .nav-btn.prev {
   margin-right: 8px;
@@ -364,6 +331,7 @@ watch(
   }
   .slider {
     grid-template-columns: 1fr;
+    --nav-offset: 0px;
   }
   .nav-btn {
     display: none;

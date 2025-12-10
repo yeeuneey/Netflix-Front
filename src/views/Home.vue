@@ -26,26 +26,26 @@
     </section>
 
     <SectionMovieList
-      title="🔥 Trending Now"
+      title="오늘의 TOP 20"
       path="/trending/movie/week"
       :show-rank="true"
     />
 
     <SectionMovieList
-      title="🎬 Popular Movies"
+      title="평점 TOP 20"
+      path="/movie/top_rated"
+      :show-rank="true"
+    />
+
+    <SectionMovieList
+      title="대세 콘텐츠"
       path="/movie/popular"
       action-label="전체보기"
       action-to="/popular"
     />
 
     <SectionMovieList
-      title="⭐ Top Rated Movies"
-      path="/movie/top_rated"
-      :show-rank="true"
-    />
-
-    <SectionMovieList
-      title="📅 Upcoming Movies"
+      title="개봉 예정"
       path="/movie/upcoming"
     />
   </div>
