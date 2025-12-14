@@ -13,11 +13,7 @@
           <span v-if="hero.vote_average">평점 {{ hero.vote_average?.toFixed(1) }}</span>
         </div>
         <div class="hero__actions">
-          <button type="button" class="btn play">
-            <i class="fa-solid fa-play"></i>
-            재생
-          </button>
-          <button type="button" class="btn info">
+          <button type="button" class="btn info" :disabled="detailLoading" @click="handleHeroDetail">
             <i class="fa-solid fa-circle-info"></i>
             상세 정보
           </button>
@@ -71,6 +67,15 @@
       />
       <p v-if="error.upcoming" class="error-text">{{ error.upcoming }}</p>
     </div>
+
+    <MovieDetailModal
+      v-if="showDetail && selectedMovie"
+      :movie="selectedMovie"
+      :detail="detailData"
+      :loading="detailLoading"
+      :error="detailError"
+      @close="closeDetail"
+    />
   </div>
 </template>
 
@@ -79,6 +84,8 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import type { Movie } from '@/types/movie';
 import MovieSection from '@/components/home/MovieSection.vue';
 import { fetchMovies, TMDB_ENDPOINTS } from '@/api/tmdb';
+import MovieDetailModal from '@/components/common/MovieDetailModal.vue';
+import { tmdbClient } from '@/api/tmdb/client';
 
 const trending = ref<Movie[]>([]);
 const nowPlaying = ref<Movie[]>([]);
@@ -101,6 +108,15 @@ const error = reactive<Record<keyof typeof loading, string | null>>({
   popular: null,
   upcoming: null,
 });
+
+type MovieDetail = {
+  overview?: string;
+  release_date?: string;
+  runtime?: number | null;
+  genres?: { id: number; name: string }[];
+  production_countries?: { iso_3166_1: string; name: string }[];
+  cast?: { name: string; character?: string }[];
+};
 
 const loadSection = async (key: keyof typeof loading, target: typeof trending, path: string) => {
   loading[key] = true;
@@ -134,6 +150,43 @@ const heroStyle = computed(() => {
     backgroundImage: `linear-gradient(90deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0.65) 100%), url(https://image.tmdb.org/t/p/original${src})`,
   };
 });
+
+const showDetail = ref(false);
+const detailLoading = ref(false);
+const detailError = ref<string | null>(null);
+const selectedMovie = ref<Movie | null>(null);
+const detailData = ref<MovieDetail | null>(null);
+
+const openDetail = async (movie: Movie) => {
+  selectedMovie.value = movie;
+  showDetail.value = true;
+  detailLoading.value = true;
+  detailError.value = null;
+  detailData.value = null;
+  try {
+    const [detailRes, creditRes] = await Promise.all([
+      tmdbClient.get(`/movie/${movie.id}`),
+      tmdbClient.get(`/movie/${movie.id}/credits`),
+    ]);
+    detailData.value = {
+      ...detailRes.data,
+      cast: creditRes.data?.cast?.slice(0, 10) ?? [],
+    };
+  } catch (e) {
+    console.error(e);
+    detailError.value = '상세 정보를 불러오지 못했어요. 잠시 후 다시 시도해주세요.';
+  } finally {
+    detailLoading.value = false;
+  }
+};
+
+const handleHeroDetail = () => {
+  if (hero.value) openDetail(hero.value);
+};
+
+const closeDetail = () => {
+  showDetail.value = false;
+};
 </script>
 
 <style scoped>
@@ -227,11 +280,6 @@ const heroStyle = computed(() => {
   font-weight: 800;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-}
-
-.btn.play {
-  background: #fff;
-  color: #000;
 }
 
 .btn.info {
