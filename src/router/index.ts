@@ -4,7 +4,6 @@ import Popular from '@/views/Popular.vue';
 import Search from '@/views/Search.vue';
 import Wishlist from '@/views/Wishlist.vue';
 import SignIn from '@/views/Signin.vue';
-import { DEFAULT_AUTH, STORAGE_KEYS } from '@/constants/storage';
 import { readAuth } from '@/utils/auth';
 
 const routes = [
