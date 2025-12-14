@@ -7,19 +7,15 @@
         <span class="logo-text">YENFLIX</span>
       </div>
       <nav class="nav-links">
-        <button @click="go('/')" :class="{ active: route.path === '/' }">메인</button>
-        <button @click="go('/popular')" :class="{ active: route.path === '/popular' }">
-          인기 콘텐츠
-        </button>
-        <button @click="go('/search')" :class="{ active: route.path === '/search' }">찾아보기</button>
-        <button @click="go('/wishlist')" :class="{ active: route.path === '/wishlist' }">
-          내가 찜한 리스트
-        </button>
+        <button @click="go('/')" :class="{ active: route.path === '/' }">Home</button>
+        <button @click="go('/popular')" :class="{ active: route.path === '/popular' }">Popular</button>
+        <button @click="go('/search')" :class="{ active: route.path === '/search' }">Search</button>
+        <button @click="go('/wishlist')" :class="{ active: route.path === '/wishlist' }">Wishlist</button>
       </nav>
     </div>
 
     <div class="actions">
-      <button class="icon-btn" aria-label="알림">
+      <button class="icon-btn" aria-label="Alerts">
         <i class="fas fa-bell"></i>
       </button>
       <template v-if="!isLoggedIn">
@@ -35,7 +31,7 @@
         </span>
         <button class="ghost" @click="logout">
           <i class="fas fa-right-from-bracket"></i>
-          <span>로그아웃</span>
+          <span>Logout</span>
         </button>
       </template>
     </div>
@@ -77,19 +73,19 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
   position: fixed;
   top: 0;
   inset-inline: 0;
-  height: 56px;
-  padding: 0 1.15rem;
-  display: flex;
+  min-height: 64px;
+  padding: 10px 1.15rem;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.75rem;
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.05) 100%);
   backdrop-filter: blur(10px);
   color: #f8f8f8;
   z-index: 40;
-  transition: background 0.25s ease, height 0.25s ease, box-shadow 0.25s ease;
+  transition: background 0.25s ease, height 0.25s ease, box-shadow 0.25s ease, padding 0.25s ease;
 }
 .main-header.scrolled {
-  height: 56px;
   background: rgba(11, 11, 15, 0.95);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
 }
@@ -98,6 +94,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  min-width: 0;
 }
 
 .brand {
@@ -105,6 +102,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
   align-items: center;
   gap: 0.4rem;
   cursor: pointer;
+  flex-shrink: 0;
 }
 .logo-icon {
   font-size: 1.5rem;
@@ -119,17 +117,30 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
 
 .nav-links {
   display: flex;
+  align-items: center;
   gap: 0.5rem;
+  flex: 1 1 0;
+  min-width: 220px;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0.25rem 0;
+}
+.nav-links::-webkit-scrollbar {
+  display: none;
 }
 .nav-links button {
   border: none;
   background: transparent;
   color: #f0f0f0;
   font-size: 0.9rem;
-  padding: 0.34rem 0.88rem;
+  padding: 0.3rem 0.7rem;
   border-radius: 999px;
   cursor: pointer;
   transition: background 0.2s, transform 0.2s;
+  flex-shrink: 0;
+  line-height: 1.2;
 }
 .nav-links button:hover {
   background: rgba(255, 255, 255, 0.1);
@@ -146,6 +157,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 .icon-btn {
   width: 36px;
@@ -191,36 +203,72 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @media (max-width: 1100px) {
   .main-header {
-    padding: 0 1rem;
+    padding: 8px 0.85rem;
+    grid-template-columns: auto 1fr auto;
   }
   .nav-links {
-    gap: 0.5rem;
+    gap: 0.4rem;
   }
   .nav-links button {
     font-size: 0.85rem;
-    padding: 0.32rem 0.75rem;
+    padding: 0.28rem 0.65rem;
+  }
+  .user-id {
+    display: none;
+  }
+  .ghost span {
+    display: none;
   }
 }
 
-@media (max-width: 768px) {
-  .nav-links {
-    display: flex;
+@media (max-width: 900px) {
+  .main-header {
+    padding: 8px 0.65rem;
     gap: 0.4rem;
-    overflow-x: auto;
-    padding: 0 0.25rem;
+    grid-template-columns: auto 1fr auto;
+  }
+  .nav-links {
+    gap: 0.3rem;
+    padding: 0 0.15rem;
   }
   .nav-links button {
-    font-size: 0.85rem;
-    padding: 0.25rem 0.6rem;
-    white-space: nowrap;
+    font-size: 0.82rem;
+    padding: 0.26rem 0.6rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .main-header {
+    padding: 0 0.65rem;
   }
   .logo-text {
-    display: inline;
-    font-size: 1.05rem;
+    font-size: 0.95rem;
+  }
+  .actions {
+    gap: 0.35rem;
+  }
+  .ghost span {
+    display: none;
+  }
+  .ghost {
+    padding: 0.3rem 0.55rem;
+  }
+  .user-id {
+    display: none;
+  }
+  .nav-links {
+    gap: 0.3rem;
+  }
+  .nav-links button {
+    padding: 0.25rem 0.55rem;
   }
 }
 </style>
