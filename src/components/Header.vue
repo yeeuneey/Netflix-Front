@@ -35,7 +35,7 @@
         </span>
         <button class="ghost" @click="logout">
           <i class="fas fa-right-from-bracket"></i>
-          <span>Logout</span>
+          <span>로그아웃</span>
         </button>
       </template>
     </div>

@@ -9,6 +9,8 @@ import { readJSON, writeJSON } from '@/utils/storage';
 
 type AuthResult<T = void> = { ok: true; message: string; data?: T } | { ok: false; message: string };
 
+const SESSION_KEY = 'nf_session_active';
+
 const setAuth = (payload: AuthPayload) => {
   writeJSON<AuthPayload>(STORAGE_KEYS.auth, payload);
 };
@@ -19,8 +21,9 @@ const setTmdbKey = (key: string) => {
 
 export const readAuth = (): AuthPayload => {
   const auth = readJSON<AuthPayload>(STORAGE_KEYS.auth, { ...DEFAULT_AUTH });
-  if (!auth.keepLogin) {
-    const reset = { ...DEFAULT_AUTH, keepLogin: false, userId: auth.userId ?? null };
+  const hasSession = sessionStorage.getItem(SESSION_KEY);
+  if (!auth.keepLogin && !hasSession) {
+    const reset = { ...DEFAULT_AUTH };
     writeJSON(STORAGE_KEYS.auth, reset);
     return reset;
   }
@@ -54,6 +57,7 @@ export const login = (email: string, password: string, keepLogin = true): AuthRe
 
   setTmdbKey(password);
   setAuth({ isLoggedIn: true, userId: email, keepLogin });
+  sessionStorage.setItem(SESSION_KEY, '1');
 
   return { ok: true, message: '로그인되었습니다.' };
 };
@@ -68,6 +72,7 @@ export const logout = (): AuthResult => {
     localStorage.removeItem(STORAGE_KEYS.tmdbKey);
     setAuth({ ...DEFAULT_AUTH });
   }
+  sessionStorage.removeItem(SESSION_KEY);
   return { ok: true, message: '로그아웃되었습니다.' };
 };
 

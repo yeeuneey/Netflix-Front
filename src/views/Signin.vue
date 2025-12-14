@@ -115,6 +115,7 @@ const handleLogin = async (payload: { email: string; password: string; keepLogin
   if (result.ok) {
     authStore.setAuth({ isLoggedIn: true, userId: payload.email, keepLogin: payload.keepLogin });
     authStore.setTmdbKey(payload.password);
+    sessionStorage.setItem('nf_session_active', '1');
     await router.push('/');
   }
 };
