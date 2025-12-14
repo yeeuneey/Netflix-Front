@@ -16,7 +16,19 @@ import Header from '@/components/Header.vue';
 
 <style scoped>
 .page-container {
-  padding-top: 72px; /* 고정 헤더 높이 보정 */
+  padding-top: 76px; /* 고정 헤더가 배너를 가리지 않도록 여유를 둠 */
+}
+
+@media (max-width: 1024px) {
+  .page-container {
+    padding-top: 68px;
+  }
+}
+
+@media (max-width: 640px) {
+  .page-container {
+    padding-top: 60px;
+  }
 }
 
 /* 라우터 전환 애니메이션 */

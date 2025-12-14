@@ -1,12 +1,11 @@
 // src/stores/wishlist.ts
 import { defineStore } from 'pinia';
 import type { Movie } from '@/types/movie';
-
-const STORAGE_KEY = 'wishlist';
+import { STORAGE_KEYS } from '@/constants/storage';
 
 export const useWishlist = defineStore('wishlist', {
   state: () => ({
-    items: JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') as Movie[],
+    items: JSON.parse(localStorage.getItem(STORAGE_KEYS.wishlist) || '[]') as Movie[],
   }),
 
   getters: {
@@ -23,7 +22,7 @@ export const useWishlist = defineStore('wishlist', {
         this.items.push(movie);
       }
 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.items));
+      localStorage.setItem(STORAGE_KEYS.wishlist, JSON.stringify(this.items));
     },
   },
 });
