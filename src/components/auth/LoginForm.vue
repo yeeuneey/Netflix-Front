@@ -61,9 +61,9 @@ const emailPattern = /^[\w-.]+@[\w-]+\.[A-Za-z]{2,}$/;
 const validateEmail = () => {
   const value = email.value.trim();
   if (!value) {
-    errors.email = '이메일을 입력하세요.';
+    errors.email = '이메일을 입력해 주세요.';
   } else if (!emailPattern.test(value)) {
-    errors.email = '이메일 형식이 올바르지 않습니다.';
+    errors.email = '올바른 이메일 형식이 아닙니다.';
   } else {
     errors.email = null;
   }
@@ -72,7 +72,7 @@ const validateEmail = () => {
 const validatePassword = () => {
   const value = password.value.trim();
   if (!value) {
-    errors.password = 'TMDB API 키를 입력하세요.';
+    errors.password = 'TMDB API 키를 입력해 주세요.';
   } else {
     errors.password = null;
   }
