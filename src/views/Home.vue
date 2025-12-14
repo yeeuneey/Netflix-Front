@@ -28,83 +28,104 @@
     <div class="section-block">
       <MovieSection
         title="지금 뜨는 영화 TOP 20"
-        :movies="trendingMovies"
-        :loading="trendingLoading"
+        :movies="trending"
+        :loading="loading.trending"
+        :show-rank="true"
       />
-      <p v-if="trendingError" class="error-text">{{ trendingError }}</p>
+      <p v-if="error.trending" class="error-text">{{ error.trending }}</p>
+    </div>
+
+    <div class="section-block">
+      <MovieSection
+        title="현재 상영작"
+        :movies="nowPlaying"
+        :loading="loading.nowPlaying"
+      />
+      <p v-if="error.nowPlaying" class="error-text">{{ error.nowPlaying }}</p>
     </div>
 
     <div class="section-block">
       <MovieSection
         title="평점 상위 TOP 20"
-        :movies="topRatedMovies"
-        :loading="topRatedLoading"
+        :movies="topRated"
+        :loading="loading.topRated"
+        :show-rank="true"
       />
-      <p v-if="topRatedError" class="error-text">{{ topRatedError }}</p>
+      <p v-if="error.topRated" class="error-text">{{ error.topRated }}</p>
     </div>
 
     <div class="section-block">
       <MovieSection
         title="인기 급상승"
-        :movies="popularMovies"
-        :loading="popularLoading"
+        :movies="popular"
+        :loading="loading.popular"
       />
-      <p v-if="popularError" class="error-text">{{ popularError }}</p>
+      <p v-if="error.popular" class="error-text">{{ error.popular }}</p>
     </div>
 
     <div class="section-block">
       <MovieSection
         title="개봉 예정작"
-        :movies="upcomingMovies"
-        :loading="upcomingLoading"
+        :movies="upcoming"
+        :loading="loading.upcoming"
       />
-      <p v-if="upcomingError" class="error-text">{{ upcomingError }}</p>
+      <p v-if="error.upcoming" class="error-text">{{ error.upcoming }}</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
-import { useMovies } from '@/composables/useMovies';
+import { computed, onMounted, reactive, ref } from 'vue';
+import type { Movie } from '@/types/movie';
 import MovieSection from '@/components/home/MovieSection.vue';
-import { TMDB_ENDPOINTS } from '@/api/tmdb';
+import { fetchMovies, TMDB_ENDPOINTS } from '@/api/tmdb';
 
-const {
-  movies: trendingMovies,
-  loading: trendingLoading,
-  error: trendingError,
-  load: loadTrending,
-} = useMovies(TMDB_ENDPOINTS.trendingWeek);
+const trending = ref<Movie[]>([]);
+const nowPlaying = ref<Movie[]>([]);
+const topRated = ref<Movie[]>([]);
+const popular = ref<Movie[]>([]);
+const upcoming = ref<Movie[]>([]);
 
-const {
-  movies: topRatedMovies,
-  loading: topRatedLoading,
-  error: topRatedError,
-  load: loadTopRated,
-} = useMovies(TMDB_ENDPOINTS.topRated);
-
-const {
-  movies: popularMovies,
-  loading: popularLoading,
-  error: popularError,
-  load: loadPopular,
-} = useMovies(TMDB_ENDPOINTS.popular);
-
-const {
-  movies: upcomingMovies,
-  loading: upcomingLoading,
-  error: upcomingError,
-  load: loadUpcoming,
-} = useMovies(TMDB_ENDPOINTS.upcoming);
-
-onMounted(() => {
-  loadTrending();
-  loadTopRated();
-  loadPopular();
-  loadUpcoming();
+const loading = reactive({
+  trending: true,
+  nowPlaying: true,
+  topRated: true,
+  popular: true,
+  upcoming: true,
 });
 
-const hero = computed(() => trendingMovies.value[0]);
+const error = reactive<Record<keyof typeof loading, string | null>>({
+  trending: null,
+  nowPlaying: null,
+  topRated: null,
+  popular: null,
+  upcoming: null,
+});
+
+const loadSection = async (key: keyof typeof loading, target: typeof trending, path: string) => {
+  loading[key] = true;
+  error[key] = null;
+  try {
+    target.value = await fetchMovies(path);
+  } catch (e) {
+    console.error(e);
+    error[key] = '영화 목록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.';
+  } finally {
+    loading[key] = false;
+  }
+};
+
+onMounted(async () => {
+  await Promise.all([
+    loadSection('trending', trending, TMDB_ENDPOINTS.trendingWeek),
+    loadSection('nowPlaying', nowPlaying, TMDB_ENDPOINTS.nowPlaying),
+    loadSection('topRated', topRated, TMDB_ENDPOINTS.topRated),
+    loadSection('popular', popular, TMDB_ENDPOINTS.popular),
+    loadSection('upcoming', upcoming, TMDB_ENDPOINTS.upcoming),
+  ]);
+});
+
+const hero = computed(() => trending.value[0]);
 const heroStyle = computed(() => {
   if (!hero.value) return {};
   const src = hero.value.backdrop_path || hero.value.poster_path;
