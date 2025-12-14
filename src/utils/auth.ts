@@ -13,6 +13,10 @@ const setAuth = (payload: AuthPayload) => {
   writeJSON<AuthPayload>(STORAGE_KEYS.auth, payload);
 };
 
+const setTmdbKey = (key: string) => {
+  localStorage.setItem(STORAGE_KEYS.tmdbKey, key);
+};
+
 export const loadUsers = (): StoredUser[] => readJSON<StoredUser[]>(STORAGE_KEYS.users, [...DEFAULT_USERS]);
 
 export const saveUsers = (users: StoredUser[]) => writeJSON<StoredUser[]>(STORAGE_KEYS.users, users);
@@ -27,7 +31,7 @@ export const register = (email: string, password: string): AuthResult => {
   const nextUsers = [...users, { id: email, password }];
   saveUsers(nextUsers);
 
-  localStorage.setItem(STORAGE_KEYS.tmdbKey, password);
+  setTmdbKey(password);
   setAuth({ isLoggedIn: true, userId: email, keepLogin: false });
 
   return { ok: true, message: '회원가입이 완료되었습니다.' };
@@ -41,15 +45,22 @@ export const login = (email: string, password: string, keepLogin = true): AuthRe
     return { ok: false, message: '이메일 또는 키가 올바르지 않습니다.' };
   }
 
-  localStorage.setItem(STORAGE_KEYS.tmdbKey, password);
+  setTmdbKey(password);
   setAuth({ isLoggedIn: true, userId: email, keepLogin });
 
   return { ok: true, message: '로그인되었습니다.' };
 };
 
 export const logout = (): AuthResult => {
-  localStorage.removeItem(STORAGE_KEYS.tmdbKey);
-  setAuth({ ...DEFAULT_AUTH });
+  const auth = readJSON<AuthPayload>(STORAGE_KEYS.auth, { ...DEFAULT_AUTH });
+  if (auth.keepLogin) {
+    // 유지 로그인이면 세션만 끄고 id는 유지
+    setAuth({ ...auth, isLoggedIn: false });
+  } else {
+    // 아니면 전체 초기화
+    localStorage.removeItem(STORAGE_KEYS.tmdbKey);
+    setAuth({ ...DEFAULT_AUTH });
+  }
   return { ok: true, message: '로그아웃되었습니다.' };
 };
 
