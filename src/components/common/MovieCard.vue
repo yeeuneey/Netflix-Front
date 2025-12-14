@@ -1,7 +1,7 @@
 <template>
   <article
     class="movie-card"
-    :class="{ wished: isWished }"
+    :class="{ wished: isWished, recommended: isWished }"
     @click="toggleWishlist"
   >
     <div class="poster-wrapper">
@@ -17,7 +17,7 @@
           :aria-pressed="isWished"
           @click.stop="toggleWishlist"
         >
-          <i :class="['fa-solid', isWished ? 'fa-check' : 'fa-heart']"></i>
+          <i :class="['fa-solid', isWished ? 'fa-heart' : 'fa-heart']"></i>
         </button>
       </div>
 
@@ -239,9 +239,9 @@ const emitDetail = () => emit('detail', props.movie);
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
+  border: none;
+  background: rgba(0, 0, 0, 0.35);
+  color: #f4f4f4;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -252,8 +252,19 @@ const emitDetail = () => emit('detail', props.movie);
 
 .wishlist-indicator:hover {
   transform: scale(1.05);
-  background: #e50914;
-  border-color: #e50914;
+  background: rgba(229, 9, 20, 0.8);
+}
+
+.wishlist-indicator i {
+  font-size: 16px;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+.wishlist-indicator[aria-pressed='true'] {
+  background: rgba(229, 9, 20, 0.9);
+}
+.wishlist-indicator[aria-pressed='true'] i {
+  color: #fff;
+  transform: scale(1.1);
 }
 
 .rank-badge {
@@ -347,5 +358,9 @@ const emitDetail = () => emit('detail', props.movie);
 
 .wished {
   border: 2px solid #e50914;
+}
+.recommended {
+  outline: 2px solid #e50914;
+  box-shadow: 0 0 4px rgba(229, 9, 20, 0.25);
 }
 </style>

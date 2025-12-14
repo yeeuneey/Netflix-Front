@@ -13,6 +13,11 @@ export const useWishlist = defineStore('wishlist', {
   },
 
   actions: {
+    set(items: Movie[]) {
+      this.items = items;
+      localStorage.setItem(STORAGE_KEYS.wishlist, JSON.stringify(this.items));
+    },
+
     toggle(movie: Movie) {
       const exists = this.items.some((m) => m.id === movie.id);
 
