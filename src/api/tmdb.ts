@@ -1,15 +1,30 @@
 import axios from 'axios';
 import type { Movie } from '@/types/movie';
+import { useAuthStore } from '@/stores/auth';
 
-const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
+const TMDB_FALLBACK_KEY = import.meta.env.VITE_TMDB_API_KEY || '';
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
+// Build a client that always injects the TMDB key from authStore (LocalStorage-backed),
+// falling back to env for dev/demo. Language defaults to ko-KR.
 const client = axios.create({
   baseURL: TMDB_BASE_URL,
   params: {
-    api_key: TMDB_API_KEY,
     language: 'ko-KR',
   },
+});
+
+client.interceptors.request.use((config) => {
+  const authStore = useAuthStore();
+  const apiKey = authStore.tmdbKey || TMDB_FALLBACK_KEY;
+
+  config.params = {
+    ...config.params,
+    api_key: apiKey,
+    language: config.params?.language ?? 'ko-KR',
+  };
+
+  return config;
 });
 
 export async function fetchMovies(
@@ -34,7 +49,10 @@ export async function fetchMoviesPage(
   extraParams: Record<string, string | number> = {}
 ): Promise<MoviesPage> {
   const { data } = await client.get(path, {
-    params: extraParams,
+    params: {
+      page: 1,
+      ...extraParams,
+    },
   });
   return data;
 }
