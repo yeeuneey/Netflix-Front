@@ -1,12 +1,11 @@
 // src/stores/auth.ts
 import { defineStore } from 'pinia';
 import {
-  AuthPayload,
   DEFAULT_AUTH,
   DEFAULT_USERS,
   STORAGE_KEYS,
-  StoredUser,
 } from '@/constants/storage';
+import type { AuthPayload, StoredUser } from '@/constants/storage';
 import { readJSON, writeJSON } from '@/utils/storage';
 
 export const useAuthStore = defineStore('auth', {
