@@ -9,7 +9,7 @@
       <nav class="nav-links">
         <button @click="go('/')" :class="{ active: route.path === '/' }">메인</button>
         <button @click="go('/popular')" :class="{ active: route.path === '/popular' }">
-          대세 콘텐츠
+          인기 콘텐츠
         </button>
         <button @click="go('/search')" :class="{ active: route.path === '/search' }">
           찾아보기
@@ -21,10 +21,10 @@
     </div>
 
     <div class="actions">
-      <button class="icon-btn" aria-label="알림">
+      <button class="icon-btn" aria-label="벨">
         <i class="fas fa-bell"></i>
       </button>
-      <template v-if="!user">
+      <template v-if="!isLoggedIn">
         <button class="ghost" @click="go('/signin')">
           <i class="fas fa-user"></i>
           <span>Login</span>
@@ -33,7 +33,7 @@
       <template v-else>
         <span class="user-id">
           <i class="far fa-circle-user"></i>
-          {{ user.email }}
+          {{ currentUser?.id || 'Guest' }}
         </span>
         <button class="ghost" @click="logout">
           <i class="fas fa-right-from-bracket"></i>
@@ -47,20 +47,20 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import { useAuthStore } from '@/stores/auth';
 
 const router = useRouter();
 const route = useRoute();
+const authStore = useAuthStore();
+const { isLoggedIn, currentUser } = storeToRefs(authStore);
 
 const isScrolled = ref(false);
-const user = ref<{ email: string } | null>(
-  JSON.parse(localStorage.getItem('user') || 'null'),
-);
 
 const go = (path: string) => router.push(path);
 
 const logout = () => {
-  localStorage.removeItem('user');
-  user.value = null;
+  authStore.logout();
   router.push('/signin');
 };
 
@@ -193,7 +193,6 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
   gap: 0.25rem;
 }
 
-/* 반응형 */
 @media (max-width: 1100px) {
   .main-header {
     padding: 0 1rem;
