@@ -7,10 +7,10 @@
         <span class="logo-text">YENFLIX</span>
       </div>
       <nav class="nav-links">
-        <button @click="go('/')" :class="{ active: route.path === '/' }">Home</button>
-        <button @click="go('/popular')" :class="{ active: route.path === '/popular' }">Popular</button>
-        <button @click="go('/search')" :class="{ active: route.path === '/search' }">Search</button>
-        <button @click="go('/wishlist')" :class="{ active: route.path === '/wishlist' }">Wishlist</button>
+        <button @click="go('/')" :class="{ active: route.path === '/' }">메인</button>
+        <button @click="go('/popular')" :class="{ active: route.path === '/popular' }">대세 콘텐츠</button>
+        <button @click="go('/search')" :class="{ active: route.path === '/search' }">찾아보기</button>
+        <button @click="go('/wishlist')" :class="{ active: route.path === '/wishlist' }">내가 찜한 리스트</button>
       </nav>
     </div>
 
@@ -21,7 +21,7 @@
       <template v-if="!isLoggedIn">
         <button class="ghost" @click="go('/signin')">
           <i class="fas fa-user"></i>
-          <span>Login</span>
+          <span>로그인</span>
         </button>
       </template>
       <template v-else>
@@ -31,7 +31,7 @@
         </span>
         <button class="ghost" @click="logout">
           <i class="fas fa-right-from-bracket"></i>
-          <span>Logout</span>
+          <span>로그아웃</span>
         </button>
       </template>
     </div>
