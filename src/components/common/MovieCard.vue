@@ -1,7 +1,7 @@
 <template>
   <article
     class="movie-card"
-    :class="{ wished: isWished, recommended: isWished }"
+    :class="{ wished: isWished }"
     @click="toggleWishlist"
   >
     <div class="poster-wrapper">
@@ -358,9 +358,5 @@ const emitDetail = () => emit('detail', props.movie);
 
 .wished {
   border: 2px solid #e50914;
-}
-.recommended {
-  outline: 2px solid #e50914;
-  box-shadow: 0 0 4px rgba(229, 9, 20, 0.25);
 }
 </style>
