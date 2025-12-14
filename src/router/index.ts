@@ -8,10 +8,10 @@ import { DEFAULT_AUTH, STORAGE_KEYS } from '@/constants/storage';
 import { readJSON } from '@/utils/storage';
 
 const routes = [
-  { path: '/', component: Home },
-  { path: '/popular', component: Popular },
-  { path: '/search', component: Search },
-  { path: '/wishlist', component: Wishlist },
+  { path: '/', component: Home, meta: { requiresAuth: true } },
+  { path: '/popular', component: Popular, meta: { requiresAuth: true } },
+  { path: '/search', component: Search, meta: { requiresAuth: true } },
+  { path: '/wishlist', component: Wishlist, meta: { requiresAuth: true } },
   { path: '/signin', component: SignIn },
 ];
 
@@ -23,12 +23,11 @@ export const router = createRouter({
   },
 });
 
-const publicPaths = ['/signin'];
-
 router.beforeEach((to, _from, next) => {
   const auth = readJSON(STORAGE_KEYS.auth, { ...DEFAULT_AUTH });
+  const requiresAuth = to.matched.some((record) => record.meta?.requiresAuth);
 
-  if (!publicPaths.includes(to.path) && !auth.isLoggedIn) {
+  if (requiresAuth && !auth.isLoggedIn) {
     next('/signin');
     return;
   }
