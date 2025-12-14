@@ -1,8 +1,8 @@
 <template>
   <article
     class="movie-card"
-    @click="toggleWishlist"
     :class="{ wished: isWished }"
+    @click="toggleWishlist"
   >
     <div class="poster-wrapper">
       <div class="poster-chrome">
@@ -22,14 +22,14 @@
       <img
         class="poster"
         :src="posterUrl"
-        :alt="movie.title"
+        :alt="`${movie.title} 포스터`"
         loading="lazy"
       />
 
       <div class="overlay">
         <div class="badges">
           <span class="badge rating" v-if="movie.vote_average">
-            ★ {{ movie.vote_average?.toFixed(1) }}
+            평점 {{ movie.vote_average?.toFixed(1) }}
           </span>
           <span class="badge date" v-if="movie.release_date">
             {{ movie.release_date.slice(0, 4) }}
@@ -39,7 +39,7 @@
         <div class="overlay-bottom">
           <p class="overlay-title">{{ movie.title }}</p>
           <p class="overlay-overview">
-            {{ movie.overview || 'No description available.' }}
+            {{ movie.overview || '줄거리가 준비되지 않았어요.' }}
           </p>
           <div class="overlay-actions">
             <button type="button" class="circle-btn" aria-label="재생">
@@ -48,7 +48,8 @@
             <button
               type="button"
               class="circle-btn"
-              aria-label="위시 토글"
+              :aria-pressed="isWished"
+              aria-label="위시리스트에 추가"
               @click.stop="toggleWishlist"
             >
               <i :class="['fa-solid', isWished ? 'fa-check' : 'fa-heart']"></i>
@@ -64,8 +65,11 @@
     <div class="info">
       <h3 class="title">{{ movie.title }}</h3>
       <p class="meta">
-        <span v-if="movie.vote_average">★ {{ movie.vote_average?.toFixed(1) }}</span>
+        <span v-if="movie.vote_average">평점 {{ movie.vote_average?.toFixed(1) }}</span>
         <span v-if="movie.release_date">· {{ movie.release_date.slice(0, 4) }}</span>
+      </p>
+      <p class="excerpt" v-if="movie.overview">
+        {{ movie.overview }}
       </p>
     </div>
   </article>
@@ -103,6 +107,7 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
   overflow: hidden;
   position: relative;
   transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .movie-card:hover {
@@ -301,12 +306,14 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
 .info {
   padding: 8px 10px 12px;
   background: #0f0f0f;
+  display: grid;
+  gap: 4px;
 }
 
 .title {
   font-size: 15px;
   font-weight: 700;
-  margin: 0 0 4px;
+  margin: 0;
   color: #f5f5f5;
   white-space: nowrap;
   overflow: hidden;
@@ -319,6 +326,17 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
   color: #c9c9c9;
   display: flex;
   gap: 6px;
+}
+
+.excerpt {
+  margin: 0;
+  color: #b8b8b8;
+  font-size: 12px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .wished {

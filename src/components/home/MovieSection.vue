@@ -2,6 +2,9 @@
   <section class="section">
     <div class="section__header">
       <h2>{{ title }}</h2>
+      <div class="section__actions">
+        <slot name="actions"></slot>
+      </div>
     </div>
 
     <Loading v-if="loading" />
@@ -21,7 +24,12 @@
 
       <div class="slider-window" ref="viewport" @scroll="updateNav">
         <div class="movie-track" ref="track">
-          <MovieCard v-for="movie in movies" :key="movie.id" :movie="movie" />
+          <MovieCard
+            v-for="(movie, idx) in movies"
+            :key="movie.id"
+            :movie="movie"
+            :rank="showRank ? idx + 1 : undefined"
+          />
         </div>
       </div>
 
@@ -41,13 +49,14 @@
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import type { Movie } from '@/types/movie';
-import MovieCard from '@/components/MovieCard.vue';
+import MovieCard from '@/components/common/MovieCard.vue';
 import Loading from '@/components/Loading.vue';
 
 const props = defineProps<{
   title: string;
   movies: Movie[];
   loading: boolean;
+  showRank?: boolean;
 }>();
 
 const viewport = ref<HTMLElement | null>(null);
@@ -142,6 +151,11 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 10px;
+}
+.section__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 .section h2 {
   margin: 0;

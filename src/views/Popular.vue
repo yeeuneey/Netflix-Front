@@ -69,7 +69,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import MovieCard from '@/components/MovieCard.vue';
+import MovieCard from '@/components/common/MovieCard.vue';
 import type { Movie } from '@/types/movie';
 import { fetchMoviesPage, TMDB_ENDPOINTS } from '@/api/tmdb';
 
