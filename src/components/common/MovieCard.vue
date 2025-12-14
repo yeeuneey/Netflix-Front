@@ -6,8 +6,10 @@
   >
     <div class="poster-wrapper">
       <div class="poster-chrome">
-        <div v-if="rank" class="rank-badge">
+        <div v-if="rank" :class="['rank-badge', rankTierClass]">
+          <span class="rank-label">TOP</span>
           <span class="rank-num">{{ rank }}</span>
+          <span class="rank-glow" aria-hidden="true"></span>
         </div>
         <button
           class="wishlist-indicator"
@@ -94,6 +96,14 @@ const isWished = computed(() =>
   wishlist.items.some((m) => m.id === props.movie.id),
 );
 
+const rankTierClass = computed(() => {
+  if (!props.rank) return 'rank-default';
+  if (props.rank === 1) return 'rank-gold';
+  if (props.rank === 2) return 'rank-silver';
+  if (props.rank === 3) return 'rank-bronze';
+  return 'rank-default';
+});
+
 const toggleWishlist = () => wishlist.toggle(props.movie);
 </script>
 
@@ -136,7 +146,8 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
   inset: 0;
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 8px;
   padding: 10px;
   pointer-events: none;
   z-index: 2;
@@ -253,6 +264,9 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
 }
 
 .wishlist-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
   pointer-events: auto;
   width: 32px;
   height: 32px;
@@ -264,7 +278,7 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 2;
+  z-index: 3;
   transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
 }
 
@@ -277,30 +291,65 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
 .rank-badge {
   pointer-events: auto;
   position: relative;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #ff4b4b, #e50914 70%, #ff7f7f);
+  min-width: 64px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ff4b4b, #e50914 65%, #ff7f7f);
   color: #fff;
   display: inline-flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.32);
+  gap: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45), 0 12px 28px rgba(229, 9, 20, 0.32);
   overflow: hidden;
   isolation: isolate;
 }
-
-.rank-num {
-  padding: 0;
-  border-radius: 0;
-  background: transparent;
-  font-size: 20px;
+.rank-badge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.25), transparent 55%);
+  opacity: 0.9;
+}
+.rank-badge .rank-glow {
+  position: absolute;
+  inset: -22px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, transparent 60%);
+  filter: blur(12px);
+  opacity: 0.7;
+  z-index: 0;
+}
+.rank-label {
+  position: relative;
+  z-index: 1;
+  font-size: 10px;
   font-weight: 800;
+  letter-spacing: 0.08em;
+}
+.rank-num {
+  position: relative;
+  z-index: 1;
+  font-size: 20px;
+  font-weight: 900;
   line-height: 1;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+.rank-gold {
+  background: linear-gradient(135deg, #ffdd55, #f6b100 65%, #ffd877);
+  color: #3a2500;
+}
+.rank-gold .rank-label,
+.rank-gold .rank-num {
+  text-shadow: none;
+}
+.rank-silver {
+  background: linear-gradient(135deg, #dfe7f3, #a4b3d1 65%, #d2dbe9);
+  color: #0f182b;
+}
+.rank-bronze {
+  background: linear-gradient(135deg, #ffb480, #d77a37 65%, #ffd2b0);
+  color: #2c1300;
 }
 
 .info {
