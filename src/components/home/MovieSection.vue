@@ -29,6 +29,7 @@
             :key="movie.id"
             :movie="movie"
             :rank="showRank ? idx + 1 : undefined"
+            @detail="openDetail"
           />
         </div>
       </div>
@@ -44,6 +45,15 @@
       </button>
     </div>
   </section>
+
+  <MovieDetailModal
+    v-if="showDetail && selectedMovie"
+    :movie="selectedMovie"
+    :detail="detailData"
+    :loading="detailLoading"
+    :error="detailError"
+    @close="closeDetail"
+  />
 </template>
 
 <script setup lang="ts">
@@ -51,6 +61,8 @@ import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import type { Movie } from '@/types/movie';
 import MovieCard from '@/components/common/MovieCard.vue';
 import Loading from '@/components/Loading.vue';
+import MovieDetailModal from '@/components/common/MovieDetailModal.vue';
+import { tmdbClient } from '@/api/tmdb/client';
 
 const props = defineProps<{
   title: string;
@@ -59,11 +71,25 @@ const props = defineProps<{
   showRank?: boolean;
 }>();
 
+type MovieDetail = {
+  overview?: string;
+  release_date?: string;
+  runtime?: number | null;
+  genres?: { id: number; name: string }[];
+  production_countries?: { iso_3166_1: string; name: string }[];
+  cast?: { name: string; character?: string }[];
+};
+
 const viewport = ref<HTMLElement | null>(null);
 const track = ref<HTMLElement | null>(null);
 const canPrev = ref(false);
 const canNext = ref(false);
 const snapTimer = ref<number | null>(null);
+const showDetail = ref(false);
+const detailLoading = ref(false);
+const detailError = ref<string | null>(null);
+const selectedMovie = ref<Movie | null>(null);
+const detailData = ref<MovieDetail | null>(null);
 
 const getStep = () => {
   const list = track.value;
@@ -138,6 +164,33 @@ onUnmounted(() => {
     window.clearTimeout(snapTimer.value);
   }
 });
+
+const openDetail = async (movie: Movie) => {
+  selectedMovie.value = movie;
+  showDetail.value = true;
+  detailLoading.value = true;
+  detailError.value = null;
+  detailData.value = null;
+  try {
+    const [detailRes, creditRes] = await Promise.all([
+      tmdbClient.get(`/movie/${movie.id}`),
+      tmdbClient.get(`/movie/${movie.id}/credits`),
+    ]);
+    detailData.value = {
+      ...detailRes.data,
+      cast: creditRes.data?.cast?.slice(0, 10) ?? [],
+    };
+  } catch (e) {
+    console.error(e);
+    detailError.value = '상세 정보를 불러오지 못했어요. 잠시 후 다시 시도해주세요.';
+  } finally {
+    detailLoading.value = false;
+  }
+};
+
+const closeDetail = () => {
+  showDetail.value = false;
+};
 </script>
 
 <style scoped>
