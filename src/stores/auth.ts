@@ -37,8 +37,19 @@ export const useAuthStore = defineStore('auth', {
       localStorage.setItem(STORAGE_KEYS.tmdbKey, key);
     },
 
+    refreshFromStorage() {
+      this.auth = readJSON<AuthPayload>(STORAGE_KEYS.auth, { ...DEFAULT_AUTH });
+      this.users = readJSON<StoredUser[]>(STORAGE_KEYS.users, [...DEFAULT_USERS]);
+      this.tmdbKey = localStorage.getItem(STORAGE_KEYS.tmdbKey) || '';
+    },
+
     logout() {
-      this.setAuth({ ...DEFAULT_AUTH });
+      if (this.auth.keepLogin) {
+        this.setAuth({ ...this.auth, isLoggedIn: false });
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.tmdbKey);
+        this.setAuth({ ...DEFAULT_AUTH });
+      }
     },
   },
 });

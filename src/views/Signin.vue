@@ -100,22 +100,26 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
 import LoginForm from '@/components/auth/LoginForm.vue';
 import RegisterForm from '@/components/auth/RegisterForm.vue';
 import { login as loginAuth, register as registerAuth } from '@/utils/auth';
 
 const mode = ref<'login' | 'register'>('login');
 const router = useRouter();
+const authStore = useAuthStore();
 
 const handleLogin = async (payload: { email: string; password: string; keepLogin: boolean }) => {
   const result = loginAuth(payload.email, payload.password, payload.keepLogin);
   alert(result.message);
   if (result.ok) {
+    authStore.setAuth({ isLoggedIn: true, userId: payload.email, keepLogin: payload.keepLogin });
+    authStore.setTmdbKey(payload.password);
     await router.push('/');
   }
 };
 
-const handleRegister = (payload: {
+const handleRegister = async (payload: {
   email: string;
   password: string;
   passwordConfirm: string;
@@ -124,6 +128,8 @@ const handleRegister = (payload: {
   const result = registerAuth(payload.email, payload.password);
   alert(result.message);
   if (result.ok) {
+    authStore.setUsers([...authStore.users, { id: payload.email, password: payload.password }]);
+    authStore.setAuth({ ...authStore.auth, isLoggedIn: false, userId: payload.email, keepLogin: false });
     mode.value = 'login';
   }
 };

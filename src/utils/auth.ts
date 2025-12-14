@@ -31,10 +31,7 @@ export const register = (email: string, password: string): AuthResult => {
   const nextUsers = [...users, { id: email, password }];
   saveUsers(nextUsers);
 
-  setTmdbKey(password);
-  setAuth({ isLoggedIn: true, userId: email, keepLogin: false });
-
-  return { ok: true, message: '회원가입이 완료되었습니다.' };
+  return { ok: true, message: '회원가입이 완료되었습니다. 로그인 후 이용해 주세요.' };
 };
 
 export const login = (email: string, password: string, keepLogin = true): AuthResult => {

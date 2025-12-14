@@ -11,9 +11,7 @@
         <button @click="go('/popular')" :class="{ active: route.path === '/popular' }">
           인기 콘텐츠
         </button>
-        <button @click="go('/search')" :class="{ active: route.path === '/search' }">
-          찾아보기
-        </button>
+        <button @click="go('/search')" :class="{ active: route.path === '/search' }">찾아보기</button>
         <button @click="go('/wishlist')" :class="{ active: route.path === '/wishlist' }">
           내가 찜한 리스트
         </button>
@@ -21,7 +19,7 @@
     </div>
 
     <div class="actions">
-      <button class="icon-btn" aria-label="벨">
+      <button class="icon-btn" aria-label="알림">
         <i class="fas fa-bell"></i>
       </button>
       <template v-if="!isLoggedIn">
@@ -49,6 +47,7 @@ import { onMounted, onUnmounted, ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useAuthStore } from '@/stores/auth';
+import { logout as logoutUtil } from '@/utils/auth';
 
 const router = useRouter();
 const route = useRoute();
@@ -60,7 +59,8 @@ const isScrolled = ref(false);
 const go = (path: string) => router.push(path);
 
 const logout = () => {
-  authStore.logout();
+  logoutUtil();
+  authStore.refreshFromStorage();
   router.push('/signin');
 };
 
