@@ -1,5 +1,6 @@
 // src/utils/storage.ts
 // Safe LocalStorage helpers to keep parsing/writing consistent.
+import { STORAGE_KEYS } from '@/constants/storage';
 
 export const readJSON = <T>(key: string, fallback: T): T => {
   const raw = localStorage.getItem(key);
@@ -22,3 +23,5 @@ export const bootstrapKey = <T>(key: string, value: T) => {
     writeJSON(key, value);
   }
 };
+
+export const loadTmdbKey = () => localStorage.getItem(STORAGE_KEYS.tmdbKey) || '';
