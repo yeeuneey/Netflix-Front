@@ -1,22 +1,12 @@
-import axios from 'axios';
 import type { Movie } from '@/types/movie';
-
-const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
-const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
-
-const client = axios.create({
-  baseURL: TMDB_BASE_URL,
-  params: {
-    api_key: TMDB_API_KEY,
-    language: 'ko-KR',
-  },
-});
+import { TMDB_ENDPOINTS } from './tmdb/url';
+import { tmdbClient } from './tmdb/client';
 
 export async function fetchMovies(
   path: string,
   extraParams: Record<string, string | number> = {}
 ): Promise<Movie[]> {
-  const { data } = await client.get(path, {
+  const { data } = await tmdbClient.get(path, {
     params: extraParams,
   });
   return data.results ?? [];
@@ -33,8 +23,13 @@ export async function fetchMoviesPage(
   path: string,
   extraParams: Record<string, string | number> = {}
 ): Promise<MoviesPage> {
-  const { data } = await client.get(path, {
-    params: extraParams,
+  const { data } = await tmdbClient.get(path, {
+    params: {
+      page: 1,
+      ...extraParams,
+    },
   });
   return data;
 }
+
+export { TMDB_ENDPOINTS };
