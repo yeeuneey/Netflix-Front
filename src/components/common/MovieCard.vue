@@ -30,10 +30,18 @@
 
       <div class="overlay">
         <div class="overlay-content">
-          <p class="overlay-overview overlay-full">
+          <p class="overlay-overview">
             {{ movie.overview || '줄거리가 준비되지 않았어요.' }}
           </p>
         </div>
+        <button
+          type="button"
+          class="detail-btn"
+          aria-label="상세 보기"
+          @click.stop="emitDetail"
+        >
+          <i class="fa-solid fa-circle-info"></i>
+        </button>
       </div>
     </div>
 
@@ -53,6 +61,7 @@ import type { Movie } from '@/types/movie';
 import { useWishlist } from '@/stores/wishlist';
 
 const props = defineProps<{ movie: Movie; rank?: number | null }>();
+const emit = defineEmits<{ (e: 'detail', movie: Movie): void }>();
 const wishlist = useWishlist();
 
 const posterUrl = computed(() => {
@@ -75,6 +84,7 @@ const rankTierClass = computed(() => {
 });
 
 const toggleWishlist = () => wishlist.toggle(props.movie);
+const emitDetail = () => emit('detail', props.movie);
 </script>
 
 <style scoped>
@@ -148,9 +158,9 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
   inset: 0;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  padding: 12px;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.15) 5%, rgba(0, 0, 0, 0.88) 100%);
+  justify-content: center;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.25) 5%, rgba(0, 0, 0, 0.9) 100%);
   opacity: 0;
   transition: opacity 0.25s ease;
 }
@@ -161,8 +171,10 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
 
 .overlay-content {
   width: 100%;
-  max-height: 100%;
-  overflow: hidden;
+  max-width: 100%;
+  display: grid;
+  place-items: center;
+  text-align: center;
 }
 
 .overlay-overview {
@@ -170,17 +182,33 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
   font-size: 14px;
   color: #f5f5f5;
   line-height: 1.6;
-  overflow: auto;
-  max-height: calc(100% - 6px);
-  padding-right: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.overlay-overview::-webkit-scrollbar {
-  width: 6px;
+.detail-btn {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+  border-radius: 12px;
+  font-size: 20px;
 }
-.overlay-overview::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.32);
-  border-radius: 999px;
+.detail-btn:hover {
+  transform: translateY(-1px);
+  background: #e50914;
 }
 
 .circle-btn {
