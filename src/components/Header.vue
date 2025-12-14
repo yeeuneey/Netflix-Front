@@ -7,20 +7,20 @@
         <span class="logo-text">YENFLIX</span>
       </div>
       <nav class="nav-links">
-        <button @click="go('/')" :class="{ active: route.path === '/' }">Home</button>
+        <button @click="go('/')" :class="{ active: route.path === '/' }">메인</button>
         <button @click="go('/popular')" :class="{ active: route.path === '/popular' }">
-          Popular
+          대세 콘텐츠
+        </button>
+        <button @click="go('/search')" :class="{ active: route.path === '/search' }">
+          찾아보기
         </button>
         <button @click="go('/wishlist')" :class="{ active: route.path === '/wishlist' }">
-          Wishlist
+          내가 찜한 리스트
         </button>
       </nav>
     </div>
 
     <div class="actions">
-      <button class="icon-btn" @click="go('/search')" aria-label="검색">
-        <i class="fas fa-magnifying-glass"></i>
-      </button>
       <button class="icon-btn" aria-label="알림">
         <i class="fas fa-bell"></i>
       </button>
@@ -53,7 +53,7 @@ const route = useRoute();
 
 const isScrolled = ref(false);
 const user = ref<{ email: string } | null>(
-  JSON.parse(localStorage.getItem('user') || 'null')
+  JSON.parse(localStorage.getItem('user') || 'null'),
 );
 
 const go = (path: string) => router.push(path);
@@ -77,8 +77,8 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
   position: fixed;
   top: 0;
   inset-inline: 0;
-  height: 64px;
-  padding: 0 1.5rem;
+  height: 56px;
+  padding: 0 1.15rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -126,8 +126,8 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
   background: transparent;
   color: #f0f0f0;
   font-size: 0.9rem;
-  padding: 0.35rem 0.85rem;
-  border-radius: 10px;
+  padding: 0.34rem 0.88rem;
+  border-radius: 999px;
   cursor: pointer;
   transition: background 0.2s, transform 0.2s;
 }
@@ -137,8 +137,9 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
   transform: translateY(-1px);
 }
 .nav-links button.active {
-  background: #e50914;
+  background: linear-gradient(135deg, #ff3b3b, #e50914 70%, #ff6a6a);
   color: #fff;
+  box-shadow: 0 8px 18px rgba(229, 9, 20, 0.4);
 }
 
 .actions {
@@ -195,14 +196,14 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
 /* 반응형 */
 @media (max-width: 1100px) {
   .main-header {
-    padding: 0 1.1rem;
+    padding: 0 1rem;
   }
   .nav-links {
     gap: 0.5rem;
   }
   .nav-links button {
     font-size: 0.85rem;
-    padding: 0.3rem 0.7rem;
+    padding: 0.32rem 0.75rem;
   }
 }
 

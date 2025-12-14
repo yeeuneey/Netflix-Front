@@ -8,7 +8,6 @@
       <div class="poster-chrome">
         <div v-if="rank" class="rank-badge">
           <span class="rank-num">{{ rank }}</span>
-          <span class="rank-label">TOP 20</span>
         </div>
         <button
           class="wishlist-indicator"
@@ -273,54 +272,30 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
 .rank-badge {
   pointer-events: auto;
   position: relative;
-  padding: 9px 14px;
-  border-radius: 14px;
-  background: rgba(20, 20, 20, 0.4);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff4b4b, #e50914 70%, #ff7f7f);
   color: #fff;
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45), 0 16px 32px rgba(229, 9, 20, 0.28);
-  min-width: 96px;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45), 0 12px 28px rgba(229, 9, 20, 0.32);
   overflow: hidden;
   isolation: isolate;
 }
 
-.rank-badge::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  background: linear-gradient(120deg, #ff3b2f, #c5000a 58%, #ff6666);
-  opacity: 0.9;
-  z-index: -1;
-}
-
-.rank-badge::after {
-  content: '';
-  position: absolute;
-  inset: 2px;
-  border-radius: 12px;
-  background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.22), transparent 55%);
-  z-index: -1;
-}
-
 .rank-num {
-  padding: 5px 10px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.16);
-  font-size: 18px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 20px;
   font-weight: 800;
   line-height: 1;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
-}
-
-.rank-label {
-  font-size: 11px;
-  letter-spacing: 0.16em;
-  font-weight: 750;
-  text-transform: uppercase;
 }
 
 .info {
