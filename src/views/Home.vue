@@ -3,14 +3,14 @@
     <section v-if="hero" class="hero" :style="heroStyle">
       <div class="hero__overlay"></div>
       <div class="hero__content">
-        <p class="hero__label">NEW! 대세 콘텐츠</p>
+        <p class="hero__label">NEW! 이번 주 트렌딩</p>
         <h1 class="hero__title">{{ hero.title }}</h1>
         <p class="hero__desc">
-          {{ hero.overview || '영화 상세 설명 로딩 중입니다...' }}
+          {{ hero.overview || '줄거리가 준비되지 않았어요.' }}
         </p>
         <div class="hero__meta">
           <span v-if="hero.release_date">{{ hero.release_date.slice(0, 4) }}</span>
-          <span v-if="hero.vote_average">★ {{ hero.vote_average?.toFixed(1) }}</span>
+          <span v-if="hero.vote_average">평점 {{ hero.vote_average?.toFixed(1) }}</span>
         </div>
         <div class="hero__actions">
           <button type="button" class="btn play">
@@ -25,58 +25,101 @@
       </div>
     </section>
 
-    <SectionMovieList
-      title="오늘의 TOP 20"
-      :path="TMDB_ENDPOINTS.trendingWeek"
-      :show-rank="true"
-    />
+    <div class="section-block">
+      <MovieSection
+        title="지금 뜨는 영화 TOP 20"
+        :movies="trendingMovies"
+        :loading="trendingLoading"
+      />
+      <p v-if="trendingError" class="error-text">{{ trendingError }}</p>
+    </div>
 
-    <SectionMovieList
-      title="평점 TOP 20"
-      :path="TMDB_ENDPOINTS.topRated"
-      :show-rank="true"
-    />
+    <div class="section-block">
+      <MovieSection
+        title="평점 상위 TOP 20"
+        :movies="topRatedMovies"
+        :loading="topRatedLoading"
+      />
+      <p v-if="topRatedError" class="error-text">{{ topRatedError }}</p>
+    </div>
 
-    <SectionMovieList
-      title="대세 콘텐츠"
-      :path="TMDB_ENDPOINTS.popular"
-      action-label="전체보기"
-      action-to="/popular"
-    />
+    <div class="section-block">
+      <MovieSection
+        title="인기 급상승"
+        :movies="popularMovies"
+        :loading="popularLoading"
+      />
+      <p v-if="popularError" class="error-text">{{ popularError }}</p>
+    </div>
 
-    <SectionMovieList
-      title="개봉 예정"
-      :path="TMDB_ENDPOINTS.upcoming"
-    />
+    <div class="section-block">
+      <MovieSection
+        title="개봉 예정작"
+        :movies="upcomingMovies"
+        :loading="upcomingLoading"
+      />
+      <p v-if="upcomingError" class="error-text">{{ upcomingError }}</p>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
-import { useMovies } from '@/composables/useMovies'
-import SectionMovieList from '@/components/SectionMovieList.vue'
-import { TMDB_ENDPOINTS } from '@/api/tmdb'
+import { computed, onMounted } from 'vue';
+import { useMovies } from '@/composables/useMovies';
+import MovieSection from '@/components/home/MovieSection.vue';
+import { TMDB_ENDPOINTS } from '@/api/tmdb';
 
-const { movies: heroMovies, load: loadHero } = useMovies(TMDB_ENDPOINTS.trendingWeek)
+const {
+  movies: trendingMovies,
+  loading: trendingLoading,
+  error: trendingError,
+  load: loadTrending,
+} = useMovies(TMDB_ENDPOINTS.trendingWeek);
 
-onMounted(() => loadHero())
+const {
+  movies: topRatedMovies,
+  loading: topRatedLoading,
+  error: topRatedError,
+  load: loadTopRated,
+} = useMovies(TMDB_ENDPOINTS.topRated);
 
-const hero = computed(() => heroMovies.value[0])
+const {
+  movies: popularMovies,
+  loading: popularLoading,
+  error: popularError,
+  load: loadPopular,
+} = useMovies(TMDB_ENDPOINTS.popular);
+
+const {
+  movies: upcomingMovies,
+  loading: upcomingLoading,
+  error: upcomingError,
+  load: loadUpcoming,
+} = useMovies(TMDB_ENDPOINTS.upcoming);
+
+onMounted(() => {
+  loadTrending();
+  loadTopRated();
+  loadPopular();
+  loadUpcoming();
+});
+
+const hero = computed(() => trendingMovies.value[0]);
 const heroStyle = computed(() => {
-  if (!hero.value) return {}
-  const src = hero.value.backdrop_path || hero.value.poster_path
-  if (!src) return {}
+  if (!hero.value) return {};
+  const src = hero.value.backdrop_path || hero.value.poster_path;
+  if (!src) return {};
   return {
     backgroundImage: `linear-gradient(90deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0.65) 100%), url(https://image.tmdb.org/t/p/original${src})`,
-  }
-})
+  };
+});
 </script>
 
 <style scoped>
 .home {
-  margin-top: 1px;
+  margin-top: 8px;
   display: grid;
-  gap: 1px;
+  gap: 22px;
 }
 
 .hero {
@@ -90,6 +133,17 @@ const heroStyle = computed(() => {
   align-items: flex-end;
   isolation: isolate;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+}
+
+.section-block {
+  display: grid;
+  gap: 6px;
+}
+
+.error-text {
+  margin: 0;
+  color: #ff9ca2;
+  font-weight: 700;
 }
 
 .hero__overlay {
@@ -171,8 +225,8 @@ const heroStyle = computed(() => {
 
 @media (max-width: 1024px) {
   .home {
-    gap: 1px;
-    margin-top: 1x;
+    gap: 18px;
+    margin-top: 6px;
   }
   .hero__content {
     max-width: 100%;
@@ -181,7 +235,7 @@ const heroStyle = computed(() => {
 
 @media (max-width: 768px) {
   .home {
-    margin-top: 1px;
+    margin-top: 4px;
   }
   .hero {
     min-height: 360px;
@@ -194,8 +248,8 @@ const heroStyle = computed(() => {
 
 @media (max-width: 560px) {
   .home {
-    gap: 1px;
-    margin-top: 1px;
+    gap: 14px;
+    margin-top: 2px;
   }
   .hero {
     min-height: 320px;
