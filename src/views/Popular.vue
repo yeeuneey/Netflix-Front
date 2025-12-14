@@ -71,7 +71,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import MovieCard from '@/components/MovieCard.vue';
 import type { Movie } from '@/types/movie';
-import { fetchMoviesPage } from '@/api/tmdb';
+import { fetchMoviesPage, TMDB_ENDPOINTS } from '@/api/tmdb';
 
 const movies = ref<Movie[]>([]);
 const page = ref(1);
@@ -114,7 +114,7 @@ const loadNext = async () => {
   const startedAt = performance.now();
 
   try {
-    const data = await fetchMoviesPage('/movie/popular', { page: page.value });
+    const data = await fetchMoviesPage(TMDB_ENDPOINTS.popular, { page: page.value });
     const results = data?.results ?? [];
     if (!results.length) {
       hasMore.value = false;

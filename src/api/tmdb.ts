@@ -1,9 +1,9 @@
 import axios from 'axios';
 import type { Movie } from '@/types/movie';
 import { useAuthStore } from '@/stores/auth';
+import { TMDB_BASE_URL, TMDB_ENDPOINTS } from './tmdb/url';
 
 const TMDB_FALLBACK_KEY = import.meta.env.VITE_TMDB_API_KEY || '';
-const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
 // Build a client that always injects the TMDB key from authStore (LocalStorage-backed),
 // falling back to env for dev/demo. Language defaults to ko-KR.
@@ -56,3 +56,5 @@ export async function fetchMoviesPage(
   });
   return data;
 }
+
+export { TMDB_ENDPOINTS };

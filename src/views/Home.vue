@@ -27,26 +27,26 @@
 
     <SectionMovieList
       title="오늘의 TOP 20"
-      path="/trending/movie/week"
+      :path="TMDB_ENDPOINTS.trendingWeek"
       :show-rank="true"
     />
 
     <SectionMovieList
       title="평점 TOP 20"
-      path="/movie/top_rated"
+      :path="TMDB_ENDPOINTS.topRated"
       :show-rank="true"
     />
 
     <SectionMovieList
       title="대세 콘텐츠"
-      path="/movie/popular"
+      :path="TMDB_ENDPOINTS.popular"
       action-label="전체보기"
       action-to="/popular"
     />
 
     <SectionMovieList
       title="개봉 예정"
-      path="/movie/upcoming"
+      :path="TMDB_ENDPOINTS.upcoming"
     />
   </div>
 </template>
@@ -55,8 +55,9 @@
 import { computed, onMounted } from 'vue'
 import { useMovies } from '@/composables/useMovies'
 import SectionMovieList from '@/components/SectionMovieList.vue'
+import { TMDB_ENDPOINTS } from '@/api/tmdb'
 
-const { movies: heroMovies, load: loadHero } = useMovies('/trending/movie/week')
+const { movies: heroMovies, load: loadHero } = useMovies(TMDB_ENDPOINTS.trendingWeek)
 
 onMounted(() => loadHero())
 
