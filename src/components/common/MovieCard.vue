@@ -29,37 +29,10 @@
       />
 
       <div class="overlay">
-        <div class="badges">
-          <span class="badge rating" v-if="movie.vote_average">
-            평점 {{ movie.vote_average?.toFixed(1) }}
-          </span>
-          <span class="badge date" v-if="movie.release_date">
-            {{ movie.release_date.slice(0, 4) }}
-          </span>
-        </div>
-
-        <div class="overlay-bottom">
-          <p class="overlay-title">{{ movie.title }}</p>
-          <p class="overlay-overview">
+        <div class="overlay-content">
+          <p class="overlay-overview overlay-full">
             {{ movie.overview || '줄거리가 준비되지 않았어요.' }}
           </p>
-          <div class="overlay-actions">
-            <button type="button" class="circle-btn" aria-label="재생">
-              <i class="fa-solid fa-play"></i>
-            </button>
-            <button
-              type="button"
-              class="circle-btn"
-              :aria-pressed="isWished"
-              aria-label="위시리스트에 추가"
-              @click.stop="toggleWishlist"
-            >
-              <i :class="['fa-solid', isWished ? 'fa-check' : 'fa-heart']"></i>
-            </button>
-            <button type="button" class="circle-btn" aria-label="상세 정보">
-              <i class="fa-solid fa-circle-info"></i>
-            </button>
-          </div>
         </div>
       </div>
     </div>
@@ -69,9 +42,6 @@
       <p class="meta">
         <span v-if="movie.vote_average">평점 {{ movie.vote_average?.toFixed(1) }}</span>
         <span v-if="movie.release_date">· {{ movie.release_date.slice(0, 4) }}</span>
-      </p>
-      <p class="excerpt" v-if="movie.overview">
-        {{ movie.overview }}
       </p>
     </div>
   </article>
@@ -116,14 +86,14 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
   border-radius: 12px;
   overflow: hidden;
   position: relative;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.2s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.2s ease;
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .movie-card:hover {
-  transform: scale(1.03);
+  transform: scale(1.06);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
-  z-index: 1;
+  z-index: 2;
 }
 
 @media (max-width: 640px) {
@@ -178,9 +148,9 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
   inset: 0;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: 10px;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.2) 5%, rgba(0, 0, 0, 0.82) 100%);
+  justify-content: flex-end;
+  padding: 12px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.15) 5%, rgba(0, 0, 0, 0.88) 100%);
   opacity: 0;
   transition: opacity 0.25s ease;
 }
@@ -189,36 +159,28 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
   opacity: 1;
 }
 
-.overlay-bottom {
-  display: grid;
-  gap: 8px;
-}
-
-.overlay-title {
-  margin: 0;
-  font-weight: 800;
-  color: #fff;
-  font-size: 15px;
-  line-height: 1.3;
+.overlay-content {
+  width: 100%;
+  max-height: 100%;
+  overflow: hidden;
 }
 
 .overlay-overview {
   margin: 0;
-  font-size: 12px;
-  color: #e5e5e5;
-  line-height: 1.45;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  font-size: 14px;
+  color: #f5f5f5;
+  line-height: 1.6;
+  overflow: auto;
+  max-height: calc(100% - 6px);
+  padding-right: 4px;
 }
 
-.overlay-actions {
-  display: grid;
-  grid-auto-flow: column;
-  gap: 10px;
-  align-items: center;
-  justify-content: flex-start;
+.overlay-overview::-webkit-scrollbar {
+  width: 6px;
+}
+.overlay-overview::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.32);
+  border-radius: 999px;
 }
 
 .circle-btn {
@@ -239,28 +201,6 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
   transform: translateY(-1px);
   background: #e50914;
   border-color: #e50914;
-}
-
-.badges {
-  display: flex;
-  gap: 6px;
-}
-
-.badge {
-  padding: 4px 8px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  background: rgba(0, 0, 0, 0.5);
-  color: #fff;
-}
-
-.badge.rating {
-  background: rgba(255, 255, 255, 0.14);
-}
-
-.badge.date {
-  background: rgba(255, 255, 255, 0.08);
 }
 
 .wishlist-indicator {
@@ -375,17 +315,6 @@ const toggleWishlist = () => wishlist.toggle(props.movie);
   color: #c9c9c9;
   display: flex;
   gap: 6px;
-}
-
-.excerpt {
-  margin: 0;
-  color: #b8b8b8;
-  font-size: 12px;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .wished {
