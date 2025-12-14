@@ -99,14 +99,20 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import LoginForm from '@/components/auth/LoginForm.vue';
 import RegisterForm from '@/components/auth/RegisterForm.vue';
+import { login as loginAuth, register as registerAuth } from '@/utils/auth';
 
 const mode = ref<'login' | 'register'>('login');
+const router = useRouter();
 
-const handleLogin = (payload: { email: string; password: string; keepLogin: boolean }) => {
-  console.log('login submit', payload);
-  // TODO: 실제 로그인 로직 연결
+const handleLogin = async (payload: { email: string; password: string; keepLogin: boolean }) => {
+  const result = loginAuth(payload.email, payload.password, payload.keepLogin);
+  alert(result.message);
+  if (result.ok) {
+    await router.push('/');
+  }
 };
 
 const handleRegister = (payload: {
@@ -115,8 +121,11 @@ const handleRegister = (payload: {
   passwordConfirm: string;
   agreeTerms: boolean;
 }) => {
-  console.log('register submit', payload);
-  // TODO: 실제 회원가입 로직 연결
+  const result = registerAuth(payload.email, payload.password);
+  alert(result.message);
+  if (result.ok) {
+    mode.value = 'login';
+  }
 };
 </script>
 

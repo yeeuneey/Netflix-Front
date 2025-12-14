@@ -33,7 +33,7 @@ export const register = (email: string, password: string): AuthResult => {
   return { ok: true, message: '회원가입이 완료되었습니다.' };
 };
 
-export const login = (email: string, password: string): AuthResult => {
+export const login = (email: string, password: string, keepLogin = true): AuthResult => {
   const users = loadUsers();
   const user = users.find((item) => item.id === email && item.password === password);
 
@@ -42,7 +42,7 @@ export const login = (email: string, password: string): AuthResult => {
   }
 
   localStorage.setItem(STORAGE_KEYS.tmdbKey, password);
-  setAuth({ isLoggedIn: true, userId: email, keepLogin: true });
+  setAuth({ isLoggedIn: true, userId: email, keepLogin });
 
   return { ok: true, message: '로그인되었습니다.' };
 };

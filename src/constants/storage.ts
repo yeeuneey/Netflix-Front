@@ -26,5 +26,7 @@ export const DEFAULT_AUTH: AuthPayload = {
   keepLogin: false,
 };
 
-export const DEFAULT_USERS: StoredUser[] = [];
+export const DEFAULT_USERS: StoredUser[] = [
+  { id: 'test@example.com', password: 'demo-key-1234' },
+];
 export const DEFAULT_RECENT_SEARCHES: string[] = [];
