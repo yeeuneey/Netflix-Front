@@ -17,6 +17,16 @@ const setTmdbKey = (key: string) => {
   localStorage.setItem(STORAGE_KEYS.tmdbKey, key);
 };
 
+export const readAuth = (): AuthPayload => {
+  const auth = readJSON<AuthPayload>(STORAGE_KEYS.auth, { ...DEFAULT_AUTH });
+  if (!auth.keepLogin) {
+    const reset = { ...DEFAULT_AUTH, keepLogin: false, userId: auth.userId ?? null };
+    writeJSON(STORAGE_KEYS.auth, reset);
+    return reset;
+  }
+  return auth;
+};
+
 export const loadUsers = (): StoredUser[] => readJSON<StoredUser[]>(STORAGE_KEYS.users, [...DEFAULT_USERS]);
 
 export const saveUsers = (users: StoredUser[]) => writeJSON<StoredUser[]>(STORAGE_KEYS.users, users);

@@ -7,10 +7,11 @@ import {
 } from '@/constants/storage';
 import type { AuthPayload, StoredUser } from '@/constants/storage';
 import { readJSON, writeJSON } from '@/utils/storage';
+import { readAuth } from '@/utils/auth';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    auth: readJSON<AuthPayload>(STORAGE_KEYS.auth, { ...DEFAULT_AUTH }),
+    auth: readAuth(),
     users: readJSON<StoredUser[]>(STORAGE_KEYS.users, [...DEFAULT_USERS]),
     tmdbKey: localStorage.getItem(STORAGE_KEYS.tmdbKey) || '',
   }),
@@ -38,7 +39,7 @@ export const useAuthStore = defineStore('auth', {
     },
 
     refreshFromStorage() {
-      this.auth = readJSON<AuthPayload>(STORAGE_KEYS.auth, { ...DEFAULT_AUTH });
+      this.auth = readAuth();
       this.users = readJSON<StoredUser[]>(STORAGE_KEYS.users, [...DEFAULT_USERS]);
       this.tmdbKey = localStorage.getItem(STORAGE_KEYS.tmdbKey) || '';
     },

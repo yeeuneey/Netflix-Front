@@ -5,7 +5,7 @@ import Search from '@/views/Search.vue';
 import Wishlist from '@/views/Wishlist.vue';
 import SignIn from '@/views/Signin.vue';
 import { DEFAULT_AUTH, STORAGE_KEYS } from '@/constants/storage';
-import { readJSON } from '@/utils/storage';
+import { readAuth } from '@/utils/auth';
 
 const routes = [
   { path: '/', component: Home, meta: { requiresAuth: true } },
@@ -24,7 +24,7 @@ export const router = createRouter({
 });
 
 router.beforeEach((to, _from, next) => {
-  const auth = readJSON(STORAGE_KEYS.auth, { ...DEFAULT_AUTH });
+  const auth = readAuth();
   const requiresAuth = to.matched.some((record) => record.meta?.requiresAuth);
 
   if (requiresAuth && !auth.isLoggedIn) {
