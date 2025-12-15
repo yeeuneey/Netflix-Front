@@ -58,7 +58,7 @@
       </div>
 
       <div v-if="viewMode === 'infinite'" class="movies-grid">
-        <MovieCard v-for="movie in movies" :key="movie.id" :movie="movie" />
+        <MovieCard v-for="movie in movies" :key="movie.id" :movie="movie" @detail="openDetail" />
       </div>
 
       <div
@@ -89,6 +89,10 @@
             <div class="cell title-col" role="cell">
               <div class="title-main">{{ movie.title }}</div>
               <div class="title-sub">{{ movie.overview }}</div>
+              <button type="button" class="detail-pill" @click="openDetail(movie)">
+                <i class="fa-solid fa-circle-info"></i>
+                상세 정보
+              </button>
             </div>
             <div class="cell" role="cell">{{ formatDate(movie.release_date) }}</div>
             <div class="cell narrow" role="cell">{{ formatScore(movie.vote_average) }}</div>
@@ -99,7 +103,8 @@
       <div v-if="viewMode === 'table'" ref="tablePagination" class="table-pagination">
         <button
           type="button"
-          class="pill ghost"
+          class="pill ghost nav-btn"
+          :class="{ active: lastNav === 'prev' }"
           :disabled="!canGoPrev"
           @click="goPrevPage"
         >
@@ -108,7 +113,8 @@
         <span class="page-indicator">페이지 {{ pageGroupLabel }}</span>
         <button
           type="button"
-          class="pill ghost"
+          class="pill ghost nav-btn"
+          :class="{ active: lastNav === 'next' }"
           :disabled="!canGoNext"
           @click="goNextPage"
         >
@@ -130,6 +136,15 @@
       <div v-if="viewMode === 'infinite'" ref="sentinel" class="sentinel" aria-hidden="true"></div>
     </section>
 
+    <MovieDetailModal
+      v-if="showDetail && selectedMovie"
+      :movie="selectedMovie"
+      :detail="detailData"
+      :loading="detailLoading"
+      :error="detailError"
+      @close="closeDetail"
+    />
+
     <button
       v-if="canScrollTop"
       type="button"
@@ -145,12 +160,22 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import MovieCard from '@/components/common/MovieCard.vue';
+import MovieDetailModal from '@/components/common/MovieDetailModal.vue';
 import type { Movie } from '@/types/movie';
 import { fetchMoviesPage, TMDB_ENDPOINTS } from '@/api/tmdb';
+import { tmdbClient } from '@/api/tmdb/client';
 
 type ViewMode = 'table' | 'infinite';
 const tablePageSize = ref(10);
 const TABLE_ROW_HEIGHT = 132;
+type MovieDetail = {
+  overview?: string;
+  release_date?: string;
+  runtime?: number | null;
+  genres?: { id: number; name: string }[];
+  production_countries?: { iso_3166_1: string; name: string }[];
+  cast?: { name: string; character?: string }[];
+};
 
 const movies = ref<Movie[]>([]);
 const page = ref(1);
@@ -165,6 +190,12 @@ const tablePage = ref(1);
 const tableWrapper = ref<HTMLElement | null>(null);
 const tablePagination = ref<HTMLElement | null>(null);
 const tableHead = ref<HTMLElement | null>(null);
+const lastNav = ref<'prev' | 'next' | null>(null);
+const showDetail = ref(false);
+const detailLoading = ref(false);
+const detailError = ref<string | null>(null);
+const selectedMovie = ref<Movie | null>(null);
+const detailData = ref<MovieDetail | null>(null);
 
 const statusText = computed(() => {
   if (error.value) return '로드 실패';
@@ -181,12 +212,7 @@ const displayedTableMovies = computed(() => {
 
 const canGoPrev = computed(() => tablePage.value > 1);
 const canGoNext = computed(() => hasMore.value || tablePage.value < totalTablePages.value);
-const pageGroupLabel = computed(() => {
-  const groupIndex = Math.floor((tablePage.value - 1) / 5);
-  const start = groupIndex * 5 + 1;
-  const end = (groupIndex + 1) * 5;
-  return `${start} / ${end}`;
-});
+const pageGroupLabel = computed(() => `${tablePage.value} / ${totalTablePages.value}`);
 
 const isSentinelVisible = () => {
   const el = sentinel.value;
@@ -296,6 +322,7 @@ const setViewMode = async (mode: ViewMode) => {
   if (viewMode.value === mode) return;
   viewMode.value = mode;
   tablePage.value = 1;
+  lastNav.value = null;
 
   if (mode === 'infinite') {
     setScrollLock(false);
@@ -330,6 +357,7 @@ const ensureDataForPage = async (targetPage: number) => {
 const goPrevPage = () => {
   if (tablePage.value > 1) {
     tablePage.value -= 1;
+    lastNav.value = 'prev';
   }
 };
 
@@ -339,6 +367,34 @@ const goNextPage = async () => {
   await ensureDataForPage(targetPage);
   const total = Math.max(1, Math.ceil(movies.value.length / tablePageSize.value));
   tablePage.value = Math.min(targetPage, total);
+  lastNav.value = 'next';
+};
+
+const openDetail = async (movie: Movie) => {
+  selectedMovie.value = movie;
+  showDetail.value = true;
+  detailLoading.value = true;
+  detailError.value = null;
+  detailData.value = null;
+  try {
+    const [detailRes, creditRes] = await Promise.all([
+      tmdbClient.get(`/movie/${movie.id}`),
+      tmdbClient.get(`/movie/${movie.id}/credits`),
+    ]);
+    detailData.value = {
+      ...detailRes.data,
+      cast: creditRes.data?.cast?.slice(0, 10) ?? [],
+    };
+  } catch (e) {
+    console.error(e);
+    detailError.value = '상세 정보를 불러오지 못했어요. 잠시 후 다시 시도해주세요.';
+  } finally {
+    detailLoading.value = false;
+  }
+};
+
+const closeDetail = () => {
+  showDetail.value = false;
 };
 
 onMounted(() => {
@@ -543,8 +599,10 @@ onBeforeUnmount(() => {
 }
 
 .title-col {
-  display: grid;
-  gap: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 100%;
 }
 
 .title-main {
@@ -560,6 +618,28 @@ onBeforeUnmount(() => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  flex: 1 1 auto;
+}
+
+.detail-pill {
+  margin-top: auto;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.detail-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
 }
 
 .table-pagination {
@@ -573,6 +653,13 @@ onBeforeUnmount(() => {
 .table-pagination .page-indicator {
   color: #e6e8f0;
   font-weight: 700;
+}
+
+.nav-btn.active {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: #e50914;
+  color: #e50914;
+  box-shadow: none;
 }
 
 .loader,
