@@ -219,12 +219,9 @@ const genres = [
 ] as const;
 
 const languages = [
-  { code: 'ko', label: '한국' },
-  { code: 'en', label: '미국/영어' },
-  { code: 'ja', label: '일본' },
-  { code: 'fr', label: '프랑스' },
-  { code: 'es', label: '스페인' },
-  { code: 'zh', label: '중국' },
+  { code: 'ko', label: '한국어' },
+  { code: 'en', label: '영어' },
+  { code: 'ja', label: '일본어' },
 ] as const;
 
 const filteredResults = computed(() => {
@@ -596,7 +593,7 @@ const closeDetail = () => {
 }
 
 .select option {
-  background: #0f0f14;
+  background: #111218;
   color: #f8f8f8;
 }
 
