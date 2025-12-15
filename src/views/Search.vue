@@ -65,7 +65,7 @@
         </div>
 
         <div class="select-group">
-          <label class="select-label" for="year">연도</label>
+          <label class="select-label" for="year">개봉 연도</label>
           <select id="year" v-model="filters.yearRange" class="select dark">
             <option v-for="option in yearRanges" :key="option.value" :value="option.value">
               {{ option.label }}
@@ -605,7 +605,9 @@ const handleScroll = () => {
   padding: 18px;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  background: linear-gradient(135deg, rgba(229, 9, 20, 0.14), rgba(17, 17, 24, 0.92));
+  background: radial-gradient(circle at 10% 10%, rgba(229, 9, 20, 0.12), transparent 30%),
+    radial-gradient(circle at 90% 10%, rgba(123, 109, 255, 0.14), transparent 24%),
+    rgba(16, 18, 28, 0.9);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
 }
 
