@@ -80,8 +80,11 @@
                 </button>
               </div>
               <div class="title-sub">{{ movie.overview }}</div>
-              <div class="release-line">{{ formatDate(movie.release_date) }}</div>
-              <div class="rating-line">{{ formatScore(movie.vote_average) }}</div>
+              <div class="meta-line">
+                <span class="rating">평점 {{ formatScore(movie.vote_average) }} </span>
+                <span class="divider">·</span>
+                <span class="year">{{ formatYear(movie.release_date) }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -318,6 +321,12 @@ const formatDate = (date: string) => {
   return date;
 };
 
+const formatYear = (date?: string | null) => {
+  if (!date) return '-';
+  const year = date.split('-')[0];
+  return year || '-';
+};
+
 const formatScore = (score: number) => {
   if (!Number.isFinite(score)) return '-';
   return score.toFixed(1);
@@ -392,6 +401,7 @@ onBeforeUnmount(() => {
   margin-top: 0px;
   display: grid;
   gap: 12px;
+  --row-height: 168px;
 }
 
 .popular-page.table-mode {
@@ -477,13 +487,14 @@ onBeforeUnmount(() => {
 
 .movies-panel {
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(12, 14, 20, 0.9);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
-  padding: 18px;
+  border: 1px solid transparent;
+  background: transparent;
+  box-shadow: none;
+  padding: 24px 18px 32px;
   display: grid;
   gap: 14px;
   position: relative;
+  margin-top: 0px;
 }
 
 .panel-header h2 {
@@ -491,7 +502,7 @@ onBeforeUnmount(() => {
 }
 
 .popular-page.table-mode .panel-header {
-  margin-bottom: 4px;
+  margin-bottom: 10px;
 }
 
 .panel-header .desc {
@@ -505,6 +516,7 @@ onBeforeUnmount(() => {
   gap: 8px;
   align-items: center;
   flex-wrap: wrap;
+  margin-top: 15px;
 }
 
 .view-toggle .pill {
@@ -521,8 +533,13 @@ onBeforeUnmount(() => {
 
 .movies-grid {
   display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+}
+
+.movies-grid :deep(.movie-card) {
+  width: 100%;
+  min-width: 0;
 }
 
 .table-wrapper {
@@ -531,6 +548,7 @@ onBeforeUnmount(() => {
   overflow: visible;
   background: rgba(255, 255, 255, 0.02);
   position: relative;
+  width: 100%;
 }
 
 .table-head,
@@ -542,10 +560,10 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: 64px minmax(0, 1fr);
   gap: 0;
-  align-items: start;
+  align-items: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  min-height: 160px;
-  height: 160px;
+  min-height: var(--row-height);
+  height: var(--row-height);
 }
 
 .table-row.head {
@@ -590,7 +608,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 8px;
   height: 100%;
-  justify-content: space-between;
+  justify-content: center;
 }
 
 .title-row {
@@ -608,18 +626,26 @@ onBeforeUnmount(() => {
 .title-sub {
   color: #cbd3e8;
   font-size: 0.9rem;
-  line-height: 1.4;
+  line-height: 1.45;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: calc(1.45em * 2); /* lock to 2 lines */
   flex: 1 1 auto;
 }
 
-.release-line,
-.rating-line {
+.meta-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   color: #e6e8f0;
   font-weight: 700;
+}
+
+.meta-line .divider {
+  opacity: 0.7;
 }
 
 .detail-icon {
@@ -650,8 +676,9 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 12px;
   position: sticky;
-  bottom: 12px;
-  padding: 10px 14px;
+  bottom: 0;
+  padding: 8px 12px;
+  margin-top: 14px;
   border-radius: 12px;
   background: rgba(12, 14, 20, 0.95);
   backdrop-filter: blur(6px);
@@ -812,6 +839,10 @@ onBeforeUnmount(() => {
     grid-template-columns: 1fr;
   }
 
+  .popular-page {
+    --row-height: 156px;
+  }
+
   .table-row {
     grid-template-columns: 56px minmax(0, 1fr) 150px 90px;
     gap: 4px 6px;
@@ -832,6 +863,7 @@ onBeforeUnmount(() => {
 @media (max-width: 640px) {
   .popular-page {
     margin-top: 0px;
+    --row-height: 148px;
   }
 
   .table-row {
