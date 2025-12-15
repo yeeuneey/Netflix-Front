@@ -2,7 +2,7 @@
   <div class="wishlist-page">
     <header class="wishlist-hero">
       <div class="hero-copy">
-        <p class="eyebrow">위시리스트</p>
+        <p class="eyebrow">WISHLIST</p>
         <h1>내가 찜한 리스트</h1>
         <p class="lede">찜한 영화들을 검색·정렬·필터로 바로 찾아보세요!</p>
         <div class="hero-meta">
@@ -259,7 +259,7 @@ onMounted(loadWishlist);
 .wishlist-page {
   display: grid;
   gap: 20px;
-  padding: 80px 18px 32px;
+  padding: 40px 18px 32px;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -267,8 +267,8 @@ onMounted(loadWishlist);
 .wishlist-hero {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 16px;
-  padding: 24px 20px;
+  gap: 14px;
+  padding: 18px;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   background: linear-gradient(135deg, rgba(229, 9, 20, 0.14), rgba(17, 17, 24, 0.92));
@@ -307,7 +307,6 @@ onMounted(loadWishlist);
   background: linear-gradient(135deg, #ff3d5a, #ff7f66);
   color: #0b0c14;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 10px 28px rgba(255, 61, 90, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .chip.ghost {
@@ -386,23 +385,28 @@ onMounted(loadWishlist);
 }
 
 .pill-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
 }
 
 .pill {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  border-radius: 999px;
+  padding: clamp(8px, 2vw, 12px) clamp(12px, 3vw, 18px);
+  border-radius: 12px;
   border: 1px solid transparent;
-  padding: 10px 14px;
-  cursor: pointer;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.04);
-  color: #f5f5f5;
-  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border 0.2s ease;
+  min-height: 42px;
+  height: 100%;
+  white-space: nowrap;
+  width: 100%;
+  justify-content: center;
 }
 
 .pill.primary {
@@ -412,12 +416,16 @@ onMounted(loadWishlist);
 }
 
 .pill.ghost {
-  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
+  color: #f6f6f6;
+  border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 .pill.ghost.active {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.24);
+  background: linear-gradient(135deg, #ff3d5a, #ff7f66);
+  color: #0b0c14;
+  border-color: transparent;
+  box-shadow: 0 8px 18px rgba(229, 9, 20, 0.35);
 }
 
 .pill.reset {
