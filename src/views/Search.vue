@@ -53,7 +53,7 @@
         </div>
 
         <div class="filter-group">
-          <label class="label" for="language">국가/언어</label>
+          <label class="label" for="language">언어</label>
           <select id="language" v-model="filters.language" class="select">
             <option value="">전체</option>
             <option v-for="lang in languages" :key="lang.code" :value="lang.code">
@@ -150,6 +150,7 @@ import { STORAGE_KEYS } from '@/constants/storage';
 import { readJSON, writeJSON } from '@/utils/storage';
 
 type SortOption = 'popularity' | 'recent' | 'rating' | 'title';
+type SortValue = SortOption | '';
 type RatingKey = 'all' | '9-10' | '8-9' | '7-8' | '6-7' | '5-6' | 'sub-5';
 type YearRangeKey = 'all' | 'pre-1990' | '1990-1999' | '2000-2009' | '2010-2019' | '2020-plus';
 type MovieDetail = {
@@ -171,7 +172,7 @@ const activeRequestId = ref(0);
 const debounceId = ref<number | null>(null);
 
 const filters = reactive({
-  sort: 'popularity' as SortOption,
+  sort: '' as SortValue,
   genre: 0 as number,
   language: '' as string,
   ratingRange: 'all' as RatingKey,
@@ -280,7 +281,7 @@ const filteredResults = computed(() => {
 
 const isDefaultFilters = computed(() => {
   return (
-    filters.sort === 'popularity' &&
+    filters.sort === '' &&
     filters.genre === 0 &&
     filters.language === '' &&
     filters.ratingRange === 'all' &&
@@ -293,7 +294,7 @@ const hasActiveFilters = computed(() => !isDefaultFilters.value);
 const scheduleSearch = () => {
   if (debounceId.value) window.clearTimeout(debounceId.value);
   const term = query.value.trim();
-  const shouldRequest = term || !isDefaultFilters.value || results.value.length === 0;
+  const shouldRequest = term || !isDefaultFilters.value;
   if (!shouldRequest) {
     activeRequestId.value += 1;
     loading.value = false;
@@ -324,6 +325,7 @@ const triggerSearch = async () => {
   if (debounceId.value) window.clearTimeout(debounceId.value);
   const term = query.value.trim();
   const isDiscover = !term;
+  const sortParam = filters.sort ? sortToApiParam[filters.sort] : sortToApiParam.popularity;
   const rating = ratingOptions.find((r) => r.value === filters.ratingRange);
   const yearRange = yearRanges.find((y) => y.value === filters.yearRange);
   const requestId = ++activeRequestId.value;
@@ -335,7 +337,7 @@ const triggerSearch = async () => {
       ? await fetchMovies(TMDB_ENDPOINTS.discover, {
           include_adult: 'false',
           page: 1,
-          sort_by: sortToApiParam[filters.sort],
+          sort_by: sortParam,
           ...(filters.genre ? { with_genres: filters.genre } : {}),
           ...(filters.language ? { with_original_language: filters.language } : {}),
           ...(rating && rating.value !== 'all' ? { 'vote_average.gte': rating.min, 'vote_average.lte': rating.max } : {}),
@@ -400,11 +402,16 @@ const clearQuery = () => {
 };
 
 const resetFilters = () => {
-  filters.sort = 'popularity';
+  filters.sort = '';
   filters.genre = 0;
   filters.language = '';
   filters.ratingRange = 'all';
   filters.yearRange = 'all';
+  results.value = [];
+  lastQueried.value = '';
+  error.value = null;
+  activeRequestId.value += 1;
+  loading.value = false;
 };
 
 const showDetail = ref(false);
@@ -584,6 +591,18 @@ const closeDetail = () => {
   box-shadow: 0 10px 24px rgba(255, 61, 90, 0.28);
 }
 
+.pill.reset {
+  background: linear-gradient(135deg, #ff3d5a, #ff7f66);
+  color: #0b0c14;
+  border-color: transparent;
+  box-shadow: 0 10px 24px rgba(255, 61, 90, 0.28);
+}
+
+.pill.reset:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(255, 61, 90, 0.35);
+}
+
 .checkbox {
   display: inline-flex;
   align-items: center;
@@ -620,7 +639,6 @@ const closeDetail = () => {
   background: #0f1118;
   color: #f8f8f8;
 }
-
 .filter-group .value {
   font-weight: 800;
   color: #f8f8f8;
