@@ -8,8 +8,6 @@
           자동으로 다음 인기 영화 페이지를 로딩합니다.
         </p>
         <div class="badges">
-          <span class="badge">Infinite scroll</span>
-          <span class="badge">Auto load</span>
         </div>
       </div>
 
@@ -32,10 +30,6 @@
       <div class="panel-header">
         <div>
           <p class="eyebrow small">Popular Movies</p>
-          <h2 v-if="viewMode === 'infinite'">무한 스크롤 리스트</h2>
-          <h2 v-else>테이블 리스트</h2>
-          <p class="desc" v-if="viewMode === 'infinite'">자동 로딩으로 끊김 없는 탐색</p>
-          <p class="desc" v-else>페이지네이션으로 정리된 탐색</p>
         </div>
         <div class="view-toggle" role="group" aria-label="View mode">
           <button
@@ -44,7 +38,7 @@
             :class="{ active: viewMode === 'infinite' }"
             @click="setViewMode('infinite')"
           >
-            Infinite Scroll
+            Scroll
           </button>
           <button
             type="button"
@@ -52,7 +46,7 @@
             :class="{ active: viewMode === 'table' }"
             @click="setViewMode('table')"
           >
-            Table View
+            Page
           </button>
         </div>
       </div>
@@ -68,14 +62,6 @@
         role="table"
         aria-label="Popular movies table"
       >
-        <div ref="tableHead" class="table-head" role="rowgroup">
-          <div class="table-row head" role="row">
-            <div class="cell narrow" role="columnheader">#</div>
-            <div class="cell title-col" role="columnheader">Title</div>
-            <div class="cell" role="columnheader">Release</div>
-            <div class="cell narrow" role="columnheader">Rating</div>
-          </div>
-        </div>
         <div class="table-body" role="rowgroup">
           <div
             v-for="(movie, idx) in displayedTableMovies"
@@ -87,15 +73,16 @@
               {{ (tablePage - 1) * tablePageSize + idx + 1 }}
             </div>
             <div class="cell title-col" role="cell">
-              <div class="title-main">{{ movie.title }}</div>
+              <div class="title-row">
+                <div class="title-main">{{ movie.title }}</div>
+                <button type="button" class="detail-icon" aria-label="상세 보기" @click="openDetail(movie)">
+                  <i class="fa-solid fa-circle-info"></i>
+                </button>
+              </div>
               <div class="title-sub">{{ movie.overview }}</div>
-              <button type="button" class="detail-pill" @click="openDetail(movie)">
-                <i class="fa-solid fa-circle-info"></i>
-                상세 정보
-              </button>
+              <div class="release-line">{{ formatDate(movie.release_date) }}</div>
+              <div class="rating-line">{{ formatScore(movie.vote_average) }}</div>
             </div>
-            <div class="cell" role="cell">{{ formatDate(movie.release_date) }}</div>
-            <div class="cell narrow" role="cell">{{ formatScore(movie.vote_average) }}</div>
           </div>
         </div>
       </div>
@@ -166,7 +153,8 @@ import { fetchMoviesPage, TMDB_ENDPOINTS } from '@/api/tmdb';
 import { tmdbClient } from '@/api/tmdb/client';
 
 type ViewMode = 'table' | 'infinite';
-const tablePageSize = ref(10);
+const TABLE_PAGE_SIZE = 4;
+const tablePageSize = ref(TABLE_PAGE_SIZE);
 const TABLE_ROW_HEIGHT = 132;
 type MovieDetail = {
   overview?: string;
@@ -296,20 +284,8 @@ const scrollToTop = () => {
 };
 
 const recomputeTablePageSize = () => {
-  if (viewMode.value !== 'table') return;
-  const wrapperRect = tableWrapper.value?.getBoundingClientRect();
-  if (!wrapperRect) return;
-
-  const paginationHeight = tablePagination.value?.offsetHeight ?? 0;
-  const headHeight = tableHead.value?.offsetHeight ?? 0;
-  const available =
-    window.innerHeight - wrapperRect.top - paginationHeight - 32; // buffer for padding/gap
-  const rowHeight = TABLE_ROW_HEIGHT;
-  const spaceForRows = available - headHeight;
-  const nextSize = Math.max(3, Math.floor(spaceForRows / rowHeight));
-
-  if (nextSize !== tablePageSize.value) {
-    tablePageSize.value = nextSize;
+  if (tablePageSize.value !== TABLE_PAGE_SIZE) {
+    tablePageSize.value = TABLE_PAGE_SIZE;
     tablePage.value = 1;
   }
 };
@@ -402,13 +378,11 @@ onMounted(() => {
   loadNext();
   setupObserver();
   window.addEventListener('scroll', handleScroll, { passive: true });
-  window.addEventListener('resize', recomputeTablePageSize);
 });
 
 onBeforeUnmount(() => {
   if (observer.value) observer.value.disconnect();
   window.removeEventListener('scroll', handleScroll);
-  window.removeEventListener('resize', recomputeTablePageSize);
   setScrollLock(false);
 });
 </script>
@@ -509,6 +483,7 @@ onBeforeUnmount(() => {
   padding: 18px;
   display: grid;
   gap: 14px;
+  position: relative;
 }
 
 .panel-header h2 {
@@ -553,8 +528,9 @@ onBeforeUnmount(() => {
 .table-wrapper {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
-  overflow: hidden;
+  overflow: visible;
   background: rgba(255, 255, 255, 0.02);
+  position: relative;
 }
 
 .table-head,
@@ -564,11 +540,12 @@ onBeforeUnmount(() => {
 
 .table-row {
   display: grid;
-  grid-template-columns: 64px 1fr 160px 100px;
+  grid-template-columns: 64px minmax(0, 1fr);
   gap: 0;
   align-items: start;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  min-height: 132px;
+  min-height: 160px;
+  height: 160px;
 }
 
 .table-row.head {
@@ -588,8 +565,9 @@ onBeforeUnmount(() => {
 }
 
 .cell {
-  padding: 12px 14px;
+  padding: 12px 12px 12px 14px;
   color: #e6e8f0;
+  min-width: 0;
 }
 
 .cell.narrow {
@@ -598,11 +576,28 @@ onBeforeUnmount(() => {
   color: #cbd3e8;
 }
 
+.cell.release {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-start;
+  text-align: left;
+  white-space: nowrap;
+}
+
 .title-col {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
   height: 100%;
+  justify-content: space-between;
+}
+
+.title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  justify-content: space-between;
 }
 
 .title-main {
@@ -621,25 +616,31 @@ onBeforeUnmount(() => {
   flex: 1 1 auto;
 }
 
-.detail-pill {
-  margin-top: auto;
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  border-radius: 999px;
-  border: 0;
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
-  font-weight: 800;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+.release-line,
+.rating-line {
+  color: #e6e8f0;
+  font-weight: 700;
 }
 
-.detail-pill:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+.detail-icon {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #e6e8f0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, color 0.2s ease;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  font-size: 18px;
+}
+
+.detail-icon:hover {
+  transform: translateY(-1px);
+  color: #e50914;
 }
 
 .table-pagination {
@@ -648,6 +649,14 @@ onBeforeUnmount(() => {
   justify-content: center;
   align-items: center;
   gap: 12px;
+  position: sticky;
+  bottom: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(12, 14, 20, 0.95);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  z-index: 5;
 }
 
 .table-pagination .page-indicator {
@@ -802,21 +811,56 @@ onBeforeUnmount(() => {
   .page-header {
     grid-template-columns: 1fr;
   }
+
+  .table-row {
+    grid-template-columns: 56px minmax(0, 1fr) 150px 90px;
+    gap: 4px 6px;
+  }
+
+  .cell {
+    padding: 10px 10px 10px 12px;
+  }
+
+  .cell.release,
+  .cell.rating,
+  .release-head,
+  .rating-head {
+    padding-right: 14px;
+  }
 }
 
 @media (max-width: 640px) {
   .popular-page {
-    margin-top: 68px;
+    margin-top: 0px;
   }
 
   .table-row {
-    grid-template-columns: 48px 1fr;
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 6px 10px;
   }
 
-  .table-row .cell:nth-child(3),
-  .table-row .cell:nth-child(4) {
-    padding-top: 0;
-    padding-bottom: 10px;
+  .table-row.head {
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 6px 10px;
+  }
+
+  .release-head,
+  .rating-head {
+    grid-column: 2;
+    text-align: left;
+    padding-right: 0;
+  }
+
+  .cell.release {
+    grid-column: 2;
+    justify-content: flex-start;
+    padding: 4px 0;
+  }
+
+  .cell.rating {
+    grid-column: 2;
+    text-align: left;
+    padding: 2px 0;
   }
 
   .top-button {
