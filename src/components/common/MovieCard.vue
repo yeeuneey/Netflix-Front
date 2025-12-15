@@ -1,9 +1,5 @@
 <template>
-  <article
-    class="movie-card"
-    :class="{ wished: isWished }"
-    @click="toggleWishlist"
-  >
+  <article class="movie-card" @click="toggleWishlist">
     <div class="poster-wrapper">
       <div class="poster-chrome">
         <div v-if="rank" :class="['rank-badge', rankTierClass]">
@@ -12,12 +8,13 @@
           <span class="rank-glow" aria-hidden="true"></span>
         </div>
         <button
+          v-if="isWished"
           class="wishlist-indicator"
           type="button"
           :aria-pressed="isWished"
           @click.stop="toggleWishlist"
         >
-          <i :class="['fa-solid', isWished ? 'fa-heart' : 'fa-heart']"></i>
+          <i class="fa-solid fa-heart"></i>
         </button>
       </div>
 
@@ -196,19 +193,26 @@ const emitDetail = () => emit('detail', props.movie);
   width: 44px;
   height: 44px;
   border: none;
-  background: rgba(0, 0, 0, 0.6);
+  background: transparent;
   color: #fff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: transform 0.2s ease, background 0.2s ease;
-  border-radius: 12px;
+  border-radius: 0;
   font-size: 20px;
 }
 .detail-btn:hover {
   transform: translateY(-1px);
-  background: #e50914;
+  background: transparent;
+}
+.detail-btn i {
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+.detail-btn:hover i {
+  color: #e50914;
+  transform: scale(1.05);
 }
 
 .circle-btn {
@@ -356,7 +360,4 @@ const emitDetail = () => emit('detail', props.movie);
   gap: 6px;
 }
 
-.wished {
-  border: 2px solid #e50914;
-}
 </style>
