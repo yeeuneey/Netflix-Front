@@ -62,17 +62,13 @@
           </select>
         </div>
 
-        <div class="filter-group inline">
-          <label class="label" for="minScore">평점</label>
-          <input
-            id="minScore"
-            v-model.number="filters.minScore"
-            type="range"
-            min="0"
-            max="10"
-            step="0.5"
-          />
-          <span class="value">{{ filters.minScore.toFixed(1) }}</span>
+        <div class="filter-group">
+          <label class="label" for="rating">평점</label>
+          <select id="rating" v-model="filters.ratingRange" class="select">
+            <option v-for="option in ratingOptions" :key="option.value" :value="option.value">
+              {{ option.label }}
+            </option>
+          </select>
         </div>
 
         <div class="filter-group inline">
@@ -86,11 +82,6 @@
             placeholder="예: 2024"
           />
         </div>
-
-        <label class="checkbox">
-          <input v-model="filters.onlyPoster" type="checkbox" />
-          <span>포스터 있는 영화만</span>
-        </label>
 
         <button type="button" class="pill ghost reset" @click="resetFilters" :disabled="!hasActiveFilters">
           초기화
@@ -162,6 +153,7 @@ import { STORAGE_KEYS } from '@/constants/storage';
 import { readJSON, writeJSON } from '@/utils/storage';
 
 type SortOption = 'popularity' | 'recent' | 'rating' | 'title';
+type RatingKey = 'all' | '9-10' | '8-9' | '7-8' | '6-7' | '5-6' | 'sub-5';
 type MovieDetail = {
   overview?: string;
   release_date?: string;
@@ -182,11 +174,10 @@ const debounceId = ref<number | null>(null);
 
 const filters = reactive({
   sort: 'popularity' as SortOption,
-  minScore: 0,
-  onlyPoster: true,
   year: '' as string,
   genre: 0 as number,
   language: '' as string,
+  ratingRange: 'all' as RatingKey,
 });
 
 const sortOptions: { value: SortOption; label: string }[] = [
@@ -202,6 +193,16 @@ const sortToApiParam: Record<SortOption, string> = {
   rating: 'vote_average.desc',
   title: 'original_title.asc',
 };
+
+const ratingOptions: { value: RatingKey; label: string; min: number; max: number }[] = [
+  { value: 'all', label: '전체', min: 0, max: 10 },
+  { value: '9-10', label: '9~10', min: 9, max: 10 },
+  { value: '8-9', label: '8~9', min: 8, max: 9 },
+  { value: '7-8', label: '7~8', min: 7, max: 8 },
+  { value: '6-7', label: '6~7', min: 6, max: 7 },
+  { value: '5-6', label: '5~6', min: 5, max: 6 },
+  { value: 'sub-5', label: '5점 이하', min: 0, max: 5 },
+];
 
 const genres = [
   { id: 28, name: '액션' },
@@ -230,12 +231,12 @@ const filteredResults = computed(() => {
   const year = filters.year.trim();
   let list = [...results.value];
 
-  if (filters.onlyPoster) {
-    list = list.filter((movie) => !!movie.poster_path);
-  }
-
-  if (filters.minScore > 0) {
-    list = list.filter((movie) => (movie.vote_average ?? 0) >= filters.minScore);
+  const rating = ratingOptions.find((r) => r.value === filters.ratingRange);
+  if (rating && rating.value !== 'all') {
+    list = list.filter((movie) => {
+      const score = movie.vote_average ?? 0;
+      return score >= rating.min && score <= rating.max;
+    });
   }
 
   if (year.length === 4) {
@@ -272,9 +273,8 @@ const isDefaultFilters = computed(() => {
     filters.sort === 'popularity' &&
     filters.genre === 0 &&
     filters.language === '' &&
-    filters.minScore === 0 &&
     filters.year.trim() === '' &&
-    filters.onlyPoster === true
+    filters.ratingRange === 'all'
   );
 });
 
@@ -298,7 +298,7 @@ watch(
 );
 
 watch(
-  () => [filters.sort, filters.genre, filters.language, filters.minScore, filters.year],
+  () => [filters.sort, filters.genre, filters.language, filters.ratingRange, filters.year],
   () => scheduleSearch()
 );
 
@@ -327,7 +327,7 @@ const triggerSearch = async () => {
           ...(filters.genre ? { with_genres: filters.genre } : {}),
           ...(filters.language ? { with_original_language: filters.language } : {}),
           ...(filters.year.trim().length === 4 ? { primary_release_year: filters.year.trim() } : {}),
-          ...(filters.minScore > 0 ? { 'vote_average.gte': filters.minScore } : {}),
+          ...(rating && rating.value !== 'all' ? { 'vote_average.gte': rating.min, 'vote_average.lte': rating.max } : {}),
         })
       : await fetchMovies(TMDB_ENDPOINTS.search, {
           query: term,
@@ -335,8 +335,7 @@ const triggerSearch = async () => {
           page: 1,
         });
     if (requestId !== activeRequestId.value) return;
-    const hydrated = filters.onlyPoster ? data.filter((m) => !!m.poster_path) : data;
-    results.value = hydrated;
+    results.value = data.filter((movie) => !!movie.poster_path);
     lastQueried.value = isDiscover ? '필터 검색' : term;
     if (!isDiscover) {
       pushRecent(term);
@@ -383,9 +382,8 @@ const resetFilters = () => {
   filters.sort = 'popularity';
   filters.genre = 0;
   filters.language = '';
-  filters.minScore = 0;
   filters.year = '';
-  filters.onlyPoster = true;
+  filters.ratingRange = 'all';
 };
 
 const showDetail = ref(false);
@@ -594,6 +592,11 @@ const closeDetail = () => {
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.07);
+  color: #f8f8f8;
+}
+
+.select option {
+  background: #0f0f14;
   color: #f8f8f8;
 }
 
