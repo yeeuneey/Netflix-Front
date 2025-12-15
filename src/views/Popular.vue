@@ -57,7 +57,6 @@
 
       <div
         v-else
-        ref="tableWrapper"
         class="table-wrapper"
         role="table"
         aria-label="Popular movies table"
@@ -90,7 +89,7 @@
         </div>
       </div>
 
-      <div v-if="viewMode === 'table'" ref="tablePagination" class="table-pagination">
+      <div v-if="viewMode === 'table'" class="table-pagination">
         <button
           type="button"
           class="pill ghost nav-btn"
@@ -158,7 +157,6 @@ import { tmdbClient } from '@/api/tmdb/client';
 type ViewMode = 'table' | 'infinite';
 const TABLE_PAGE_SIZE = 4;
 const tablePageSize = ref(TABLE_PAGE_SIZE);
-const TABLE_ROW_HEIGHT = 132;
 type MovieDetail = {
   overview?: string;
   release_date?: string;
@@ -178,9 +176,6 @@ const observer = ref<IntersectionObserver | null>(null);
 const canScrollTop = ref(false);
 const viewMode = ref<ViewMode>('infinite');
 const tablePage = ref(1);
-const tableWrapper = ref<HTMLElement | null>(null);
-const tablePagination = ref<HTMLElement | null>(null);
-const tableHead = ref<HTMLElement | null>(null);
 const lastNav = ref<'prev' | 'next' | null>(null);
 const showDetail = ref(false);
 const detailLoading = ref(false);
@@ -315,11 +310,6 @@ const setViewMode = async (mode: ViewMode) => {
   }
 
   await loadNext();
-};
-
-const formatDate = (date: string) => {
-  if (!date) return '-';
-  return date;
 };
 
 const formatYear = (date?: string | null) => {
@@ -637,6 +627,7 @@ onBeforeUnmount(() => {
   font-size: 0.9rem;
   line-height: 1.45;
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;

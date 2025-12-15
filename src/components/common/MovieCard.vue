@@ -187,6 +187,7 @@ const emitDetail = () => emit('detail', props.movie);
   color: #f5f5f5;
   line-height: 1.6;
   display: -webkit-box;
+  line-clamp: 3;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
