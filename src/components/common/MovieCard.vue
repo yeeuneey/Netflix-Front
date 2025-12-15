@@ -86,8 +86,8 @@ const emitDetail = () => emit('detail', props.movie);
 
 <style scoped>
 .movie-card {
-  flex: 0 0 clamp(150px, 12vw, 190px);
-  min-width: clamp(150px, 12vw, 190px);
+  flex: 0 0 clamp(120px, 16vw, 160px);
+  min-width: clamp(120px, 16vw, 160px);
   cursor: pointer;
   background: #141414;
   border-radius: 12px;
@@ -105,15 +105,15 @@ const emitDetail = () => emit('detail', props.movie);
 
 @media (max-width: 640px) {
   .movie-card {
-    flex-basis: clamp(130px, 44vw, 170px);
-    min-width: clamp(130px, 44vw, 1700px);
+    flex-basis: clamp(110px, 34vw, 140px);
+    min-width: clamp(110px, 34vw, 140px);
   }
 }
 
 @media (max-width: 1024px) and (min-width: 641px) {
   .movie-card {
-    flex-basis: clamp(140px, 28vw, 190px);
-    min-width: clamp(140px, 28vw, 190px);
+    flex-basis: clamp(118px, 22vw, 156px);
+    min-width: clamp(118px, 22vw, 156px);
   }
 }
 
@@ -187,6 +187,7 @@ const emitDetail = () => emit('detail', props.movie);
   color: #f5f5f5;
   line-height: 1.6;
   display: -webkit-box;
+  line-clamp: 3;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;

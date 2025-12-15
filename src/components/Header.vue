@@ -9,7 +9,7 @@
     <nav class="nav-center">
       <div class="nav-links">
         <button @click="go('/')" :class="{ active: route.path === '/' }">메인</button>
-        <button @click="go('/popular')" :class="{ active: route.path === '/popular' }">인기 콘텐츠</button>
+        <button @click="go('/popular')" :class="{ active: route.path === '/popular' }">대세 콘텐츠</button>
         <button @click="go('/search')" :class="{ active: route.path === '/search' }">찾아보기</button>
         <button @click="go('/wishlist')" :class="{ active: route.path === '/wishlist' }">내가 찜한 리스트</button>
       </div>
