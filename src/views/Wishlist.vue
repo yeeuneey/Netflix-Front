@@ -53,14 +53,24 @@
 
         <div class="select-row">
           <label class="select-group">
+            <span class="select-label">장르</span>
+            <select v-model.number="filters.genre" class="select">
+              <option :value="0">전체</option>
+              <option v-for="g in genreOptions" :key="g.id" :value="g.id">
+                {{ g.name }}
+              </option>
+            </select>
+          </label>
+
+          <label class="select-group">
             <span class="select-label">개봉 연도</span>
             <select v-model="filters.year" class="select">
               <option value="all">전체</option>
-              <option value="2020s">2020년대</option>
-              <option value="2010s">2010년대</option>
-              <option value="2000s">2000년대</option>
-              <option value="1990s">1990년대</option>
-              <option value="older">1990년 이전</option>
+              <option value="2020-plus">2020년 이후</option>
+              <option value="2010-2019">2010~2019</option>
+              <option value="2000-2009">2000~2009</option>
+              <option value="1990-1999">1990~1999</option>
+              <option value="pre-1990">1990년 이전</option>
             </select>
           </label>
 
@@ -134,7 +144,7 @@ import { STORAGE_KEYS } from '@/constants/storage';
 import { readJSON } from '@/utils/storage';
 
 type SortKey = 'saved' | 'release' | 'rating' | 'title';
-type YearFilter = 'all' | '2020s' | '2010s' | '2000s' | '1990s' | 'older';
+type YearFilter = 'all' | '2020-plus' | '2010-2019' | '2000-2009' | '1990-1999' | 'pre-1990';
 
 const router = useRouter();
 const wishlistStore = useWishlist();
@@ -144,6 +154,7 @@ const loading = ref(true);
 const searchTerm = ref('');
 const filters = reactive({
   sort: 'saved' as SortKey,
+  genre: 0 as number,
   year: 'all' as YearFilter,
   language: '' as string,
 });
@@ -157,23 +168,31 @@ const sortOptions: { value: SortKey; label: string }[] = [
 
 const wishlistCount = computed(() => items.value.length);
 
-const languageOptions = computed(() => {
-  const codes = new Set<string>();
-  items.value.forEach((movie) => {
-    if (movie.original_language) {
-      codes.add(movie.original_language);
-    }
-  });
+const genreOptions = [
+  { id: 28, name: '액션' },
+  { id: 12, name: '모험' },
+  { id: 16, name: '애니메이션' },
+  { id: 35, name: '코미디' },
+  { id: 80, name: '범죄' },
+  { id: 18, name: '드라마' },
+  { id: 14, name: '판타지' },
+  { id: 27, name: '공포' },
+  { id: 10749, name: '로맨스' },
+  { id: 878, name: 'SF' },
+  { id: 53, name: '스릴러' },
+] as const;
 
-  return Array.from(codes)
-    .sort()
-    .map((code) => ({ code, label: code.toUpperCase() }));
-});
+const languageOptions = [
+  { code: 'ko', label: '한국어' },
+  { code: 'en', label: '영어' },
+  { code: 'ja', label: '일본어' },
+] as const;
 
 const filtersActive = computed(
   () =>
     Boolean(searchTerm.value.trim()) ||
     filters.sort !== 'saved' ||
+    filters.genre !== 0 ||
     filters.year !== 'all' ||
     Boolean(filters.language),
 );
@@ -186,14 +205,18 @@ const filteredWishlist = computed(() => {
     list = list.filter((movie) => movie.title.toLowerCase().includes(term));
   }
 
+  if (filters.genre) {
+    list = list.filter((movie) => movie.genre_ids?.includes(filters.genre));
+  }
+
   if (filters.year !== 'all') {
     list = list.filter((movie) => {
       const year = movie.release_date ? Number(movie.release_date.slice(0, 4)) : null;
       if (!year) return false;
-      if (filters.year === '2020s') return year >= 2020;
-      if (filters.year === '2010s') return year >= 2010 && year <= 2019;
-      if (filters.year === '2000s') return year >= 2000 && year <= 2009;
-      if (filters.year === '1990s') return year >= 1990 && year <= 1999;
+      if (filters.year === '2020-plus') return year >= 2020;
+      if (filters.year === '2010-2019') return year >= 2010 && year <= 2019;
+      if (filters.year === '2000-2009') return year >= 2000 && year <= 2009;
+      if (filters.year === '1990-1999') return year >= 1990 && year <= 1999;
       return year < 1990;
     });
   }
@@ -227,6 +250,7 @@ const goTo = (path: string) => router.push(path);
 const resetFilters = () => {
   searchTerm.value = '';
   filters.sort = 'saved';
+  filters.genre = 0;
   filters.year = 'all';
   filters.language = '';
 };
@@ -436,7 +460,8 @@ onMounted(loadWishlist);
 
 .select {
   width: 100%;
-  padding: 10px 12px;
+  min-width: 140px;
+  padding: 10px 14px;
   border-radius: 10px;
   border: 1px solid #f5f5f5;
   background: #0b0c14;
@@ -466,6 +491,7 @@ onMounted(loadWishlist);
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
+  justify-content: center;
 }
 
 .empty {
