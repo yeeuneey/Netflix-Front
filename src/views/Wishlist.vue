@@ -6,21 +6,14 @@
         <h1>내가 찜한 리스트</h1>
         <p class="lede">찜한 영화들을 검색·정렬·필터로 바로 찾아보세요!</p>
         <div class="hero-meta">
-          <span class="chip primary">{{ wishlistCount }}편 저장</span>
+          <span class="chip primary">
+            <i class="fa-solid fa-heart"></i>
+            <span class="chip-text">{{ wishlistCount }}편 저장</span>
+          </span>
           <span v-if="filtersActive" class="chip ghost">필터 적용됨</span>
         </div>
-      </div>
-      <div class="hero-actions">
-        <button type="button" class="pill primary" @click="goTo('/search')">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <span>작품 찾기</span>
-        </button>
-        <button type="button" class="pill ghost" @click="goTo('/popular')">
-          <i class="fa-solid fa-fire"></i>
-          <span>인기작 보기</span>
-        </button>
-      </div>
-    </header>
+    </div>
+  </header>
 
     <section v-if="wishlistCount" class="controls">
       <div class="search-control">
@@ -277,10 +270,8 @@ onMounted(loadWishlist);
   gap: 16px;
   padding: 24px 20px;
   border-radius: 14px;
-  background: radial-gradient(circle at 10% 10%, rgba(229, 9, 20, 0.12), transparent 30%),
-    radial-gradient(circle at 90% 10%, rgba(123, 109, 255, 0.14), transparent 24%),
-    rgba(16, 18, 28, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(135deg, rgba(229, 9, 20, 0.14), rgba(17, 17, 24, 0.92));
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
 }
 
@@ -305,23 +296,33 @@ onMounted(loadWishlist);
 .chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
+  gap: 8px;
+  padding: 8px 14px;
   border-radius: 999px;
   font-weight: 700;
   font-size: 0.9rem;
 }
 
 .chip.primary {
-  background: rgba(229, 9, 20, 0.14);
-  color: #ffdce0;
-  border: 1px solid rgba(229, 9, 20, 0.4);
+  background: linear-gradient(135deg, #ff3d5a, #ff7f66);
+  color: #0b0c14;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 28px rgba(255, 61, 90, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .chip.ghost {
   background: rgba(255, 255, 255, 0.06);
   color: #d8deee;
   border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.chip i {
+  font-size: 0.95rem;
+}
+
+.chip-text {
+  display: inline-block;
+  font-weight: 800;
 }
 
 .hero-actions {
@@ -432,9 +433,10 @@ onMounted(loadWishlist);
 }
 
 .select-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  flex-wrap: wrap;
+  align-items: end;
 }
 
 .select-group {
@@ -452,7 +454,7 @@ onMounted(loadWishlist);
 
 .select {
   width: 100%;
-  min-width: 140px;
+  min-width: 0;
   padding: 10px 14px;
   border-radius: 10px;
   border: 1px solid #f5f5f5;
