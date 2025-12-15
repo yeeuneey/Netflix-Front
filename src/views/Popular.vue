@@ -17,7 +17,7 @@
         <p class="label">현재 상태</p>
         <p class="value">{{ statusText }}</p>
         <div class="meta-row">
-          <span>로딩 된 영화는 {{ movies.length }} 작품입니다!</span>
+          <span>로딩된 영화는 {{ movies.length }} 작품입니다.</span>
           <span v-if="!hasMore">모든 페이지 로드 완료</span>
         </div>
         <div class="actions">
@@ -68,7 +68,7 @@
         role="table"
         aria-label="Popular movies table"
       >
-        <div class="table-head" role="rowgroup">
+        <div ref="tableHead" class="table-head" role="rowgroup">
           <div class="table-row head" role="row">
             <div class="cell narrow" role="columnheader">#</div>
             <div class="cell title-col" role="columnheader">Title</div>
@@ -83,15 +83,7 @@
             class="table-row"
             role="row"
           >
-            <div
-              v-if="idx === 0"
-              ref="tableRowProbe"
-              class="cell narrow"
-              role="cell"
-            >
-              {{ (tablePage - 1) * tablePageSize + idx + 1 }}
-            </div>
-            <div v-else class="cell narrow" role="cell">
+            <div class="cell narrow" role="cell">
               {{ (tablePage - 1) * tablePageSize + idx + 1 }}
             </div>
             <div class="cell title-col" role="cell">
@@ -158,6 +150,7 @@ import { fetchMoviesPage, TMDB_ENDPOINTS } from '@/api/tmdb';
 
 type ViewMode = 'table' | 'infinite';
 const tablePageSize = ref(10);
+const TABLE_ROW_HEIGHT = 132;
 
 const movies = ref<Movie[]>([]);
 const page = ref(1);
@@ -171,7 +164,7 @@ const viewMode = ref<ViewMode>('infinite');
 const tablePage = ref(1);
 const tableWrapper = ref<HTMLElement | null>(null);
 const tablePagination = ref<HTMLElement | null>(null);
-const tableRowProbe = ref<HTMLElement | null>(null);
+const tableHead = ref<HTMLElement | null>(null);
 
 const statusText = computed(() => {
   if (error.value) return '로드 실패';
@@ -276,11 +269,12 @@ const recomputeTablePageSize = () => {
   if (!wrapperRect) return;
 
   const paginationHeight = tablePagination.value?.offsetHeight ?? 0;
+  const headHeight = tableHead.value?.offsetHeight ?? 0;
   const available =
-    window.innerHeight - wrapperRect.top - paginationHeight - 32; // tighter buffer to fit more rows
-  const rowHeight = tableRowProbe.value?.offsetHeight ?? 96;
-  const minRows = 6;
-  const nextSize = Math.max(minRows, Math.floor(available / rowHeight));
+    window.innerHeight - wrapperRect.top - paginationHeight - 32; // buffer for padding/gap
+  const rowHeight = TABLE_ROW_HEIGHT;
+  const spaceForRows = available - headHeight;
+  const nextSize = Math.max(3, Math.floor(spaceForRows / rowHeight));
 
   if (nextSize !== tablePageSize.value) {
     tablePageSize.value = nextSize;
@@ -359,13 +353,13 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .popular-page {
-  margin-top: 80px;
+  margin-top: 0px;
   display: grid;
-  gap: 18px;
+  gap: 12px;
 }
 
 .popular-page.table-mode {
-  margin-top: 20px;
+  margin-top: 0px;
   gap: 12px;
 }
 
@@ -512,6 +506,7 @@ onBeforeUnmount(() => {
   gap: 0;
   align-items: start;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  min-height: 132px;
 }
 
 .table-row:last-child {
@@ -550,7 +545,7 @@ onBeforeUnmount(() => {
   font-size: 0.9rem;
   line-height: 1.4;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
