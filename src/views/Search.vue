@@ -71,16 +71,13 @@
           </select>
         </div>
 
-        <div class="filter-group inline">
+        <div class="filter-group">
           <label class="label" for="year">연도</label>
-          <input
-            id="year"
-            v-model="filters.year"
-            type="text"
-            inputmode="numeric"
-            maxlength="4"
-            placeholder="예: 2024"
-          />
+          <select id="year" v-model="filters.yearRange" class="select">
+            <option v-for="option in yearRanges" :key="option.value" :value="option.value">
+              {{ option.label }}
+            </option>
+          </select>
         </div>
 
         <button type="button" class="pill ghost reset" @click="resetFilters" :disabled="!hasActiveFilters">
@@ -154,6 +151,7 @@ import { readJSON, writeJSON } from '@/utils/storage';
 
 type SortOption = 'popularity' | 'recent' | 'rating' | 'title';
 type RatingKey = 'all' | '9-10' | '8-9' | '7-8' | '6-7' | '5-6' | 'sub-5';
+type YearRangeKey = 'all' | 'pre-1990' | '1990-1999' | '2000-2009' | '2010-2019' | '2020-plus';
 type MovieDetail = {
   overview?: string;
   release_date?: string;
@@ -174,10 +172,10 @@ const debounceId = ref<number | null>(null);
 
 const filters = reactive({
   sort: 'popularity' as SortOption,
-  year: '' as string,
   genre: 0 as number,
   language: '' as string,
   ratingRange: 'all' as RatingKey,
+  yearRange: 'all' as YearRangeKey,
 });
 
 const sortOptions: { value: SortOption; label: string }[] = [
@@ -204,6 +202,15 @@ const ratingOptions: { value: RatingKey; label: string; min: number; max: number
   { value: 'sub-5', label: '5점 이하', min: 0, max: 5 },
 ];
 
+const yearRanges: { value: YearRangeKey; label: string; min?: number; max?: number }[] = [
+  { value: 'all', label: '전체' },
+  { value: '2020-plus', label: '2020 이후', min: 2020 },
+  { value: '2010-2019', label: '2010-2019', min: 2010, max: 2019 },
+  { value: '2000-2009', label: '2000-2009', min: 2000, max: 2009 },
+  { value: '1990-1999', label: '1990-1999', min: 1990, max: 1999 },
+  { value: 'pre-1990', label: '1990 이전', max: 1989 },
+];
+
 const genres = [
   { id: 28, name: '액션' },
   { id: 12, name: '어드벤처' },
@@ -225,7 +232,6 @@ const languages = [
 ] as const;
 
 const filteredResults = computed(() => {
-  const year = filters.year.trim();
   let list = [...results.value];
 
   const rating = ratingOptions.find((r) => r.value === filters.ratingRange);
@@ -236,8 +242,15 @@ const filteredResults = computed(() => {
     });
   }
 
-  if (year.length === 4) {
-    list = list.filter((movie) => movie.release_date?.startsWith(year));
+  const yearRange = yearRanges.find((r) => r.value === filters.yearRange);
+  if (yearRange && yearRange.value !== 'all') {
+    list = list.filter((movie) => {
+      const year = parseInt(movie.release_date?.split('-')[0] || '', 10);
+      if (!Number.isFinite(year)) return false;
+      if (typeof yearRange.min === 'number' && year < yearRange.min) return false;
+      if (typeof yearRange.max === 'number' && year > yearRange.max) return false;
+      return true;
+    });
   }
 
   if (filters.genre) {
@@ -270,8 +283,8 @@ const isDefaultFilters = computed(() => {
     filters.sort === 'popularity' &&
     filters.genre === 0 &&
     filters.language === '' &&
-    filters.year.trim() === '' &&
-    filters.ratingRange === 'all'
+    filters.ratingRange === 'all' &&
+    filters.yearRange === 'all'
   );
 });
 
@@ -295,7 +308,7 @@ watch(
 );
 
 watch(
-  () => [filters.sort, filters.genre, filters.language, filters.ratingRange, filters.year],
+  () => [filters.sort, filters.genre, filters.language, filters.ratingRange, filters.yearRange],
   () => scheduleSearch()
 );
 
@@ -311,6 +324,8 @@ const triggerSearch = async () => {
   if (debounceId.value) window.clearTimeout(debounceId.value);
   const term = query.value.trim();
   const isDiscover = !term;
+  const rating = ratingOptions.find((r) => r.value === filters.ratingRange);
+  const yearRange = yearRanges.find((y) => y.value === filters.yearRange);
   const requestId = ++activeRequestId.value;
   loading.value = true;
   error.value = null;
@@ -323,8 +338,17 @@ const triggerSearch = async () => {
           sort_by: sortToApiParam[filters.sort],
           ...(filters.genre ? { with_genres: filters.genre } : {}),
           ...(filters.language ? { with_original_language: filters.language } : {}),
-          ...(filters.year.trim().length === 4 ? { primary_release_year: filters.year.trim() } : {}),
           ...(rating && rating.value !== 'all' ? { 'vote_average.gte': rating.min, 'vote_average.lte': rating.max } : {}),
+          ...(yearRange && yearRange.value !== 'all'
+            ? {
+                ...(typeof yearRange.min === 'number'
+                  ? { 'primary_release_date.gte': `${yearRange.min}-01-01` }
+                  : {}),
+                ...(typeof yearRange.max === 'number'
+                  ? { 'primary_release_date.lte': `${yearRange.max}-12-31` }
+                  : {}),
+              }
+            : {}),
         })
       : await fetchMovies(TMDB_ENDPOINTS.search, {
           query: term,
@@ -379,8 +403,8 @@ const resetFilters = () => {
   filters.sort = 'popularity';
   filters.genre = 0;
   filters.language = '';
-  filters.year = '';
   filters.ratingRange = 'all';
+  filters.yearRange = 'all';
 };
 
 const showDetail = ref(false);
@@ -587,18 +611,14 @@ const closeDetail = () => {
   width: 100%;
   padding: 9px 10px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: #161822;
   color: #f8f8f8;
 }
 
 .select option {
-  background: #111218;
+  background: #0f1118;
   color: #f8f8f8;
-}
-
-.filter-group input[type='range'] {
-  accent-color: #ff3d5a;
 }
 
 .filter-group .value {
