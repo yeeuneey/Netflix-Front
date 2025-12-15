@@ -86,8 +86,8 @@ const emitDetail = () => emit('detail', props.movie);
 
 <style scoped>
 .movie-card {
-  flex: 0 0 clamp(200px, 18vw, 220px);
-  min-width: clamp(200px, 18vw, 220px);
+  flex: 0 0 clamp(150px, 12vw, 190px);
+  min-width: clamp(150px, 12vw, 190px);
   cursor: pointer;
   background: #141414;
   border-radius: 12px;
@@ -105,8 +105,15 @@ const emitDetail = () => emit('detail', props.movie);
 
 @media (max-width: 640px) {
   .movie-card {
-    flex-basis: clamp(170px, 58vw, 200px);
-    min-width: clamp(170px, 58vw, 200px);
+    flex-basis: clamp(130px, 44vw, 170px);
+    min-width: clamp(130px, 44vw, 1700px);
+  }
+}
+
+@media (max-width: 1024px) and (min-width: 641px) {
+  .movie-card {
+    flex-basis: clamp(140px, 28vw, 190px);
+    min-width: clamp(140px, 28vw, 190px);
   }
 }
 

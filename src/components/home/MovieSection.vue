@@ -276,7 +276,7 @@ const closeDetail = () => {
 
 .movie-track {
   display: flex;
-  gap: 14px;
+  gap: 8px;
   padding: 2px 8px 8px;
   scroll-snap-type: x mandatory;
 }
