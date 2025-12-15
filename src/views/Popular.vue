@@ -1,6 +1,6 @@
 <template>
-  <div class="popular-page">
-    <header class="page-header">
+  <div class="popular-page" :class="{ 'table-mode': viewMode === 'table' }">
+    <header v-if="viewMode === 'infinite'" class="page-header">
       <div class="title-block">
         <p class="eyebrow">인기 만점!</p>
         <h1>대세 콘텐츠</h1>
@@ -32,8 +32,10 @@
       <div class="panel-header">
         <div>
           <p class="eyebrow small">Popular Movies</p>
-          <h2>무한 스크롤 리스트</h2>
-          <p class="desc"> </p>
+          <h2 v-if="viewMode === 'infinite'">무한 스크롤 리스트</h2>
+          <h2 v-else>테이블 리스트</h2>
+          <p class="desc" v-if="viewMode === 'infinite'">자동 로딩으로 끊김 없는 탐색</p>
+          <p class="desc" v-else>페이지네이션으로 정리된 탐색</p>
         </div>
         <div class="view-toggle" role="group" aria-label="View mode">
           <button
@@ -59,7 +61,13 @@
         <MovieCard v-for="movie in movies" :key="movie.id" :movie="movie" />
       </div>
 
-      <div v-else class="table-wrapper" role="table" aria-label="Popular movies table">
+      <div
+        v-else
+        ref="tableWrapper"
+        class="table-wrapper"
+        role="table"
+        aria-label="Popular movies table"
+      >
         <div class="table-head" role="rowgroup">
           <div class="table-row head" role="row">
             <div class="cell narrow" role="columnheader">#</div>
@@ -69,8 +77,23 @@
           </div>
         </div>
         <div class="table-body" role="rowgroup">
-          <div v-for="(movie, idx) in movies" :key="movie.id" class="table-row" role="row">
-            <div class="cell narrow" role="cell">{{ idx + 1 }}</div>
+          <div
+            v-for="(movie, idx) in displayedTableMovies"
+            :key="movie.id"
+            class="table-row"
+            role="row"
+          >
+            <div
+              v-if="idx === 0"
+              ref="tableRowProbe"
+              class="cell narrow"
+              role="cell"
+            >
+              {{ (tablePage - 1) * tablePageSize + idx + 1 }}
+            </div>
+            <div v-else class="cell narrow" role="cell">
+              {{ (tablePage - 1) * tablePageSize + idx + 1 }}
+            </div>
             <div class="cell title-col" role="cell">
               <div class="title-main">{{ movie.title }}</div>
               <div class="title-sub">{{ movie.overview }}</div>
@@ -81,6 +104,26 @@
         </div>
       </div>
 
+      <div v-if="viewMode === 'table'" ref="tablePagination" class="table-pagination">
+        <button
+          type="button"
+          class="pill ghost"
+          :disabled="!canGoPrev"
+          @click="goPrevPage"
+        >
+          이전
+        </button>
+        <span class="page-indicator">페이지 {{ tablePage }} / {{ totalTablePages }}</span>
+        <button
+          type="button"
+          class="pill ghost"
+          :disabled="!canGoNext"
+          @click="goNextPage"
+        >
+          다음
+        </button>
+      </div>
+
       <div class="loader" v-if="loading">
         <i class="fa-solid fa-spinner fa-spin"></i>
         <span>
@@ -88,15 +131,6 @@
           <span class="dots" aria-hidden="true">...</span>
         </span>
       </div>
-
-      <button
-        v-if="viewMode === 'table' && hasMore && !loading && !error"
-        type="button"
-        class="pill ghost load-more"
-        @click="loadNext"
-      >
-        페이지 더보기
-      </button>
 
       <p class="error" v-if="error">{{ error }}</p>
       <p class="end" v-else-if="!hasMore">마지막 페이지까지 모두 로딩 완료했어요.</p>
@@ -123,6 +157,7 @@ import type { Movie } from '@/types/movie';
 import { fetchMoviesPage, TMDB_ENDPOINTS } from '@/api/tmdb';
 
 type ViewMode = 'table' | 'infinite';
+const tablePageSize = ref(10);
 
 const movies = ref<Movie[]>([]);
 const page = ref(1);
@@ -133,12 +168,26 @@ const sentinel = ref<HTMLElement | null>(null);
 const observer = ref<IntersectionObserver | null>(null);
 const canScrollTop = ref(false);
 const viewMode = ref<ViewMode>('infinite');
+const tablePage = ref(1);
+const tableWrapper = ref<HTMLElement | null>(null);
+const tablePagination = ref<HTMLElement | null>(null);
+const tableRowProbe = ref<HTMLElement | null>(null);
 
 const statusText = computed(() => {
   if (error.value) return '로드 실패';
   if (loading.value) return '불러오는 중...';
   return hasMore.value ? `페이지 ${page.value - 1}까지 로딩!` : '모든 페이지 완료';
 });
+
+const totalTablePages = computed(() => Math.max(1, Math.ceil(movies.value.length / tablePageSize.value)));
+
+const displayedTableMovies = computed(() => {
+  const start = (tablePage.value - 1) * tablePageSize.value;
+  return movies.value.slice(start, start + tablePageSize.value);
+});
+
+const canGoPrev = computed(() => tablePage.value > 1);
+const canGoNext = computed(() => hasMore.value || tablePage.value < totalTablePages.value);
 
 const isSentinelVisible = () => {
   const el = sentinel.value;
@@ -148,6 +197,7 @@ const isSentinelVisible = () => {
 };
 
 const maybeLoadMoreIfVisible = () => {
+  if (viewMode.value !== 'infinite') return;
   if (!hasMore.value || loading.value) return;
   if (!isSentinelVisible()) return;
   requestAnimationFrame(() => {
@@ -186,6 +236,10 @@ const loadNext = async () => {
       await delay(remaining);
     }
     loading.value = false;
+    if (viewMode.value === 'table') {
+      await nextTick();
+      recomputeTablePageSize();
+    }
     maybeLoadMoreIfVisible();
   }
 };
@@ -216,16 +270,43 @@ const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
+const recomputeTablePageSize = () => {
+  if (viewMode.value !== 'table') return;
+  const wrapperRect = tableWrapper.value?.getBoundingClientRect();
+  if (!wrapperRect) return;
+
+  const paginationHeight = tablePagination.value?.offsetHeight ?? 0;
+  const available =
+    window.innerHeight - wrapperRect.top - paginationHeight - 32; // tighter buffer to fit more rows
+  const rowHeight = tableRowProbe.value?.offsetHeight ?? 96;
+  const minRows = 6;
+  const nextSize = Math.max(minRows, Math.floor(available / rowHeight));
+
+  if (nextSize !== tablePageSize.value) {
+    tablePageSize.value = nextSize;
+    tablePage.value = 1;
+  }
+};
+
+const setScrollLock = (locked: boolean) => {
+  document.body.style.overflow = locked ? 'hidden' : '';
+};
+
 const setViewMode = async (mode: ViewMode) => {
   if (viewMode.value === mode) return;
   viewMode.value = mode;
+  tablePage.value = 1;
 
   if (mode === 'infinite') {
+    setScrollLock(false);
     await nextTick();
     setupObserver();
     maybeLoadMoreIfVisible();
   } else if (observer.value) {
     observer.value.disconnect();
+    setScrollLock(true);
+    await nextTick();
+    recomputeTablePageSize();
   }
 };
 
@@ -239,15 +320,40 @@ const formatScore = (score: number) => {
   return score.toFixed(1);
 };
 
+const ensureDataForPage = async (targetPage: number) => {
+  const needed = targetPage * tablePageSize.value;
+  if (movies.value.length < needed && hasMore.value) {
+    await loadNext();
+  }
+};
+
+const goPrevPage = () => {
+  if (tablePage.value > 1) {
+    tablePage.value -= 1;
+  }
+};
+
+const goNextPage = async () => {
+  if (!canGoNext.value) return;
+  const targetPage = tablePage.value + 1;
+  await ensureDataForPage(targetPage);
+  const total = Math.max(1, Math.ceil(movies.value.length / tablePageSize.value));
+  tablePage.value = Math.min(targetPage, total);
+};
+
 onMounted(() => {
+  setScrollLock(viewMode.value === 'table');
   loadNext();
   setupObserver();
   window.addEventListener('scroll', handleScroll, { passive: true });
+  window.addEventListener('resize', recomputeTablePageSize);
 });
 
 onBeforeUnmount(() => {
   if (observer.value) observer.value.disconnect();
   window.removeEventListener('scroll', handleScroll);
+  window.removeEventListener('resize', recomputeTablePageSize);
+  setScrollLock(false);
 });
 </script>
 
@@ -256,6 +362,11 @@ onBeforeUnmount(() => {
   margin-top: 80px;
   display: grid;
   gap: 18px;
+}
+
+.popular-page.table-mode {
+  margin-top: 20px;
+  gap: 12px;
 }
 
 .page-header {
@@ -348,6 +459,10 @@ onBeforeUnmount(() => {
   margin: 4px 0 6px;
 }
 
+.popular-page.table-mode .panel-header {
+  margin-bottom: 4px;
+}
+
 .panel-header .desc {
   margin: 0;
   color: #cbd3e8;
@@ -438,6 +553,19 @@ onBeforeUnmount(() => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.table-pagination {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.table-pagination .page-indicator {
+  color: #e6e8f0;
+  font-weight: 700;
 }
 
 .loader,
