@@ -23,7 +23,7 @@
         type="password"
         name="password"
         autocomplete="current-password"
-        placeholder="발급받은 TMDB API 키"
+        placeholder="발급받은 TMDB API 키를 입력해 주세요."
         required
         @blur="validatePassword"
       />

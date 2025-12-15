@@ -69,8 +69,8 @@
                       <p class="lede">
                         {{
                           mode === 'login'
-                            ? 'TMDB API 키로 바로 접속하세요.'
-                            : '계정만 만들면 찜목록과 검색을 한 번에 가져옵니다.'
+                            ? ''
+                            : ''
                         }}
                       </p>
                     </div>
@@ -101,9 +101,6 @@
             회원가입하기
           </button>
         </div>
-        <p class="hint">
-          회원가입이 끝나면 커튼이 잠시 닫혔다가 자동으로 다시 열려 로그인 화면을 보여줍니다.
-        </p>
       </div>
     </div>
   </section>
@@ -454,7 +451,7 @@ const handleRegister = async (payload: {
 
 .curtain-panel {
   position: relative;
-  width: 50%;
+  width: 52%;
   background: radial-gradient(circle at 20% 20%, rgba(255, 120, 120, 0.18), transparent 55%),
     linear-gradient(135deg, #9d0000 0%, #6d0000 50%, #4d0000 100%);
   box-shadow: inset -4px 0 16px rgba(0, 0, 0, 0.35), 0 12px 28px rgba(0, 0, 0, 0.45);
@@ -496,12 +493,12 @@ const handleRegister = async (payload: {
 
 .curtain.open .curtain-panel.left,
 .curtain.opening .curtain-panel.left {
-  transform: translateX(-105%);
+  transform: translateX(-85%);
 }
 
 .curtain.open .curtain-panel.right,
 .curtain.opening .curtain-panel.right {
-  transform: translateX(105%);
+  transform: translateX(85%);
 }
 
 .curtain.closing .curtain-panel.left,
