@@ -23,7 +23,7 @@
         type="password"
         name="password"
         autocomplete="new-password"
-        placeholder="발급받은 TMDB API 키"
+        placeholder="발급받은 TMDB API 키를 입력해 주세요."
         required
         @blur="validatePassword"
       />
@@ -38,7 +38,7 @@
         type="password"
         name="passwordConfirm"
         autocomplete="new-password"
-        placeholder="다시 입력"
+        placeholder="다시 입력해 주세요."
         required
         @blur="validatePasswordConfirm"
       />
