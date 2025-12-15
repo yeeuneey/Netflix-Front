@@ -4,7 +4,7 @@
       <div class="hero-copy">
         <p class="eyebrow">위시리스트</p>
         <h1>내가 찜한 리스트</h1>
-        <p class="lede">하트를 눌러 저장한 영화들이 모두 여기 있어요. <br> 검색·정렬·필터로 원하는 작품을 바로 찾아보세요!</p>
+        <p class="lede">찜한 영화들을 검색·정렬·필터로 바로 찾아보세요!</p>
         <div class="hero-meta">
           <span class="chip primary">{{ wishlistCount }}편 저장</span>
           <span v-if="filtersActive" class="chip ghost">필터 적용됨</span>
@@ -104,11 +104,7 @@
           <i class="fa-regular fa-heart"></i>
         </div>
         <h2>찜한 영화가 없어요</h2>
-        <p class="muted">영화 카드의 하트를 눌러 내가 보고 싶은 리스트를 채워보세요.</p>
-        <div class="empty-actions">
-          <button type="button" class="pill primary" @click="goTo('/search')">영화 둘러보기</button>
-          <button type="button" class="pill ghost" @click="goTo('/popular')">인기작 보기</button>
-        </div>
+        <p class="muted">영화 카드의 하트를 눌러 리스트를 채워보세요.</p>
       </div>
 
       <div v-else-if="!filteredWishlist.length" class="empty">
@@ -116,8 +112,7 @@
           <i class="fa-solid fa-filter"></i>
         </div>
         <h2>필터에 맞는 결과가 없어요</h2>
-        <p class="muted">필터를 지우면 저장한 모든 작품을 다시 볼 수 있어요.</p>
-        <button type="button" class="pill primary" @click="resetFilters">필터 초기화</button>
+        <p class="muted">필터를 재설정하고 찜한 영화들을 다시 확인하세요.</p>
       </div>
 
       <div v-else class="grid">
@@ -134,7 +129,6 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
-import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import MovieCard from '@/components/common/MovieCard.vue';
 import Loading from '@/components/Loading.vue';
@@ -146,7 +140,6 @@ import { readJSON } from '@/utils/storage';
 type SortKey = 'saved' | 'release' | 'rating' | 'title';
 type YearFilter = 'all' | '2020-plus' | '2010-2019' | '2000-2009' | '1990-1999' | 'pre-1990';
 
-const router = useRouter();
 const wishlistStore = useWishlist();
 const { items } = storeToRefs(wishlistStore);
 
@@ -245,7 +238,7 @@ const filteredWishlist = computed(() => {
   return list;
 });
 
-const goTo = (path: string) => router.push(path);
+const goTo = (path: string) => window.location.assign(path);
 
 const resetFilters = () => {
   searchTerm.value = '';
@@ -256,9 +249,8 @@ const resetFilters = () => {
 };
 
 const openDetail = (movie: Movie) => {
-  // Reuse navigation to Search detail modal by emitting through route.
-  // For now, direct users to Search page with query prefilled.
-  router.push({ path: '/search', query: { q: movie.title } });
+  // 위시리스트에서는 클릭 시 찜 해제 동작을 우선한다.
+  wishlistStore.toggle(movie);
 };
 
 const loadWishlist = () => {
@@ -488,10 +480,10 @@ onMounted(loadWishlist);
 }
 
 .grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 18px;
+  justify-items: center;
 }
 
 .empty {
