@@ -1,23 +1,28 @@
 <template>
   <section class="auth-page" :class="[mode, curtainState]">
-    <div class="bg-aurora">
-      <span class="orb orb-1"></span>
-      <span class="orb orb-2"></span>
-      <span class="orb orb-3"></span>
-      <span class="grid-lines"></span>
+    <div class="starfield">
+      <span class="stars layer-1"></span>
+      <span class="stars layer-2"></span>
+      <span class="stars layer-3"></span>
+      <div class="grain"></div>
     </div>
-    <div class="grain"></div>
-    <div class="scanlines"></div>
 
     <div class="stage-wrap">
       <div class="stage-topper">
         <div class="stage-title">
-          <div class="pill">RED CURTAIN ENTRANCE</div>
-          <p class="stage-lede">버튼을 누르면 커튼이 열리며 스크린이 등장합니다.</p>
         </div>
         <div class="stage-lights">
           <span class="beam left"></span>
           <span class="beam right"></span>
+        </div>
+      </div>
+      <div class="hero-outside">
+        <div class="hero">
+          <div class="pill">RED CURTAIN ENTRANCE</div>
+          <h1>TMDB API로 입장, 레드카펫처럼 반짝이게.</h1>
+          <p class="lede">
+            로그인 후 여러분의 무대를 누리세요!
+          </p>
         </div>
       </div>
 
@@ -44,27 +49,6 @@
           <div class="screen-noise"></div>
 
           <div class="auth-shell">
-            <div class="hero">
-              <div class="pill">YENFLIX ACCESS</div>
-              <h1>TMDB API로 바로 입장, 레드카펫처럼 반짝이게.</h1>
-              <p class="lede">
-                키 한 번이면 대기·찜목록·검색 결과까지 즉시 열어드립니다. 로그인을 누르면
-                감각적인 무드와 함께 무대가 펼쳐집니다.
-              </p>
-              <div class="hero-cards">
-                <div class="glow-card">
-                  <p class="eyebrow">시네마 차트</p>
-                  <h3>지금 TOP 10 자동 갱신</h3>
-                  <p class="mini">카테고리별 랜덤 큐레이션으로 숨은 미니 스틸컷 노출</p>
-                </div>
-                <div class="glow-card secondary">
-                  <p class="eyebrow">보안 · 속도</p>
-                  <h3>API 키 전용 라이트닝 로그인</h3>
-                  <p class="mini">짧은 입력 + 버튼 모션으로 즉시 스크린 업로드</p>
-                </div>
-              </div>
-            </div>
-
             <div class="form-stage">
               <div class="card-stage">
                 <div class="card-stack">
@@ -305,9 +289,11 @@ const handleRegister = async (payload: {
 .stage-wrap {
   position: relative;
   z-index: 1;
-  width: min(1180px, 100%);
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
   display: grid;
   gap: 16px;
+  padding-inline: 8px;
 }
 
 .stage-topper {
@@ -321,12 +307,17 @@ const handleRegister = async (payload: {
 .stage-title {
   display: grid;
   gap: 6px;
+  width: 100%;
 }
 
 .stage-lede {
   margin: 0;
   color: #c0c9e3;
   font-size: 0.95rem;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stage-lights {
@@ -349,8 +340,21 @@ const handleRegister = async (payload: {
   background: linear-gradient(270deg, rgba(229, 9, 20, 0.35), transparent 70%);
 }
 
+.hero-outside {
+  position: relative;
+  border-radius: 26px;
+  padding: 18px 18px 10px;
+  margin: 0 auto;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.45);
+}
+
 .stage {
   position: relative;
+  width: 100%;
+  margin: 0 auto;
   border-radius: 28px;
   overflow: hidden;
   background: radial-gradient(circle at 10% 10%, rgba(255, 80, 120, 0.05), transparent 40%),
@@ -512,10 +516,8 @@ const handleRegister = async (payload: {
 .auth-shell {
   position: relative;
   z-index: 1;
-  display: grid;
-  grid-template-columns: 1.05fr 1fr;
-  gap: 26px;
-  width: min(1100px, 100%);
+  display: block;
+  width: min(760px, 100%);
   background: rgba(12, 14, 24, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 28px;
@@ -530,6 +532,7 @@ const handleRegister = async (payload: {
   padding: 14px;
   display: grid;
   gap: 16px;
+  text-align: center;
 }
 
 .pill {
@@ -537,6 +540,8 @@ const handleRegister = async (payload: {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
+  justify-content: center;
+  width: 100%;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.05);
@@ -548,13 +553,15 @@ const handleRegister = async (payload: {
 
 .hero h1 {
   margin: 4px 0 0;
-  font-size: clamp(1.8rem, 2.4vw, 2.4rem);
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
 }
 
 .hero .lede {
   margin: 4px 0 0;
   color: #c0c9e3;
-  max-width: 480px;
+  max-width: 720px;
+  margin-inline: auto;
+  font-size: clamp(0.95rem, 2.6vw, 1.05rem);
 }
 
 .hero-cards {
@@ -562,6 +569,8 @@ const handleRegister = async (payload: {
   grid-template-columns: repeat(2, minmax(200px, 1fr));
   gap: 14px;
   margin-top: 10px;
+  max-width: 920px;
+  margin-inline: auto;
 }
 
 .glow-card {
@@ -845,10 +854,15 @@ const handleRegister = async (payload: {
 }
 
 @media (max-width: 1024px) {
+  .stage-wrap,
+  .hero-outside,
+  .stage {
+    width: min(100%, 960px);
+    padding-inline: 10px;
+  }
+
   .auth-shell {
-    grid-template-columns: 1fr;
     padding: 26px 18px;
-    gap: 18px;
   }
 
   .hero {
@@ -861,11 +875,19 @@ const handleRegister = async (payload: {
 
   .stage-controls {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    text-align: center;
   }
 }
 
 @media (max-width: 720px) {
+  .stage-wrap,
+  .hero-outside,
+  .stage {
+    width: 100%;
+    padding-inline: 12px;
+  }
+
   .auth-shell {
     padding: 22px 18px;
   }
@@ -880,7 +902,8 @@ const handleRegister = async (payload: {
 
   .stage-controls {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    text-align: center;
   }
 
   .control-buttons {

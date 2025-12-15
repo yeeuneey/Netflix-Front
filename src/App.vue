@@ -1,8 +1,8 @@
 <template>
   <div class="app-shell">
-    <Header />
+    <Header v-if="!isSignin" />
 
-    <main class="page-container">
+    <main class="page-container" :class="{ 'no-header': isSignin }">
       <Transition name="route-fade" mode="out-in">
         <RouterView />
       </Transition>
@@ -11,12 +11,21 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
 import Header from '@/components/Header.vue';
+
+const route = useRoute();
+const isSignin = computed(() => route.path === '/signin');
 </script>
 
 <style scoped>
 .page-container {
-  padding-top: 76px; /* 고정 헤더가 배너를 가리지 않도록 여유를 둠 */
+  padding-top: 76px;
+}
+
+.page-container.no-header {
+  padding-top: 0;
 }
 
 @media (max-width: 1024px) {
@@ -31,7 +40,7 @@ import Header from '@/components/Header.vue';
   }
 }
 
-/* 라우터 전환 애니메이션 */
+/* 라우트 전환 애니메이션 */
 .route-fade-enter-active,
 .route-fade-leave-active {
   transition: opacity 0.25s ease, transform 0.25s ease;
