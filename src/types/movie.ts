@@ -8,4 +8,5 @@ export interface Movie {
   vote_average: number;
   backdrop_path?: string | null;
   genre_ids?: number[];
+  original_language?: string;
 }

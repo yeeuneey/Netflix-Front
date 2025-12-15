@@ -2,8 +2,8 @@
   <div class="search-page">
     <section class="search-hero">
       <div class="hero-text">
-        <p class="eyebrow">SEARCH</p>
-        <h1>찾아보기</h1>
+        <p class="eyebrow">검색</p>
+        <h1>보고 싶은 영화를 찾아보세요</h1>
       </div>
 
       <form class="search-bar" @submit.prevent="triggerSearch">
@@ -14,8 +14,8 @@
             type="search"
             name="query"
             autocomplete="off"
-          placeholder="제목이나 키워드를 입력하세요"
-        />
+            placeholder="제목이나 키워드를 입력하세요"
+          />
         <button v-if="query" class="clear" type="button" aria-label="Clear" @click="clearQuery">
           <i class="fa-solid fa-xmark"></i>
         </button>
@@ -42,8 +42,28 @@
           </div>
         </div>
 
+        <div class="filter-group">
+          <label class="label" for="genre">장르</label>
+          <select id="genre" v-model.number="filters.genre" class="select">
+            <option :value="0">전체</option>
+            <option v-for="g in genres" :key="g.id" :value="g.id">
+              {{ g.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="label" for="language">국가/언어</label>
+          <select id="language" v-model="filters.language" class="select">
+            <option value="">전체</option>
+            <option v-for="lang in languages" :key="lang.code" :value="lang.code">
+              {{ lang.label }}
+            </option>
+          </select>
+        </div>
+
         <div class="filter-group inline">
-          <label class="label" for="minScore">최소 평점</label>
+          <label class="label" for="minScore">평점</label>
           <input
             id="minScore"
             v-model.number="filters.minScore"
@@ -71,6 +91,10 @@
           <input v-model="filters.onlyPoster" type="checkbox" />
           <span>포스터 있는 영화만</span>
         </label>
+
+        <button type="button" class="pill ghost reset" @click="resetFilters" :disabled="!hasActiveFilters">
+          초기화
+        </button>
       </div>
 
       <div v-if="recentSearches.length" class="recent-row">
@@ -100,7 +124,7 @@
 
       <Loading v-if="loading" />
 
-      <p v-else-if="!lastQueried" class="placeholder">검색어를 입력하면 YENFLIX가 찾아볼게요.</p>
+      <p v-else-if="!lastQueried" class="placeholder">검색어나 필터를 설정하면 TMDB에서 찾아볼게요.</p>
       <p v-else-if="!filteredResults.length && !error" class="placeholder">
         현재 필터에 맞는 영화가 없어요.
       </p>
@@ -137,7 +161,7 @@ import { tmdbClient } from '@/api/tmdb/client';
 import { STORAGE_KEYS } from '@/constants/storage';
 import { readJSON, writeJSON } from '@/utils/storage';
 
-type SortOption = 'relevance' | 'recent' | 'rating' | 'title';
+type SortOption = 'popularity' | 'recent' | 'rating' | 'title';
 type MovieDetail = {
   overview?: string;
   release_date?: string;
@@ -157,18 +181,50 @@ const activeRequestId = ref(0);
 const debounceId = ref<number | null>(null);
 
 const filters = reactive({
-  sort: 'relevance' as SortOption,
+  sort: 'popularity' as SortOption,
   minScore: 0,
   onlyPoster: true,
   year: '' as string,
+  genre: 0 as number,
+  language: '' as string,
 });
 
 const sortOptions: { value: SortOption; label: string }[] = [
-  { value: 'relevance', label: 'API 순서' },
+  { value: 'popularity', label: '인기순' },
   { value: 'recent', label: '최신순' },
   { value: 'rating', label: '평점순' },
   { value: 'title', label: '제목순' },
 ];
+
+const sortToApiParam: Record<SortOption, string> = {
+  popularity: 'popularity.desc',
+  recent: 'primary_release_date.desc',
+  rating: 'vote_average.desc',
+  title: 'original_title.asc',
+};
+
+const genres = [
+  { id: 28, name: '액션' },
+  { id: 12, name: '어드벤처' },
+  { id: 16, name: '애니메이션' },
+  { id: 35, name: '코미디' },
+  { id: 80, name: '범죄' },
+  { id: 18, name: '드라마' },
+  { id: 14, name: '판타지' },
+  { id: 27, name: '공포' },
+  { id: 10749, name: '로맨스' },
+  { id: 878, name: 'SF' },
+  { id: 53, name: '스릴러' },
+] as const;
+
+const languages = [
+  { code: 'ko', label: '한국' },
+  { code: 'en', label: '미국/영어' },
+  { code: 'ja', label: '일본' },
+  { code: 'fr', label: '프랑스' },
+  { code: 'es', label: '스페인' },
+  { code: 'zh', label: '중국' },
+] as const;
 
 const filteredResults = computed(() => {
   const year = filters.year.trim();
@@ -184,6 +240,14 @@ const filteredResults = computed(() => {
 
   if (year.length === 4) {
     list = list.filter((movie) => movie.release_date?.startsWith(year));
+  }
+
+  if (filters.genre) {
+    list = list.filter((movie) => movie.genre_ids?.includes(filters.genre));
+  }
+
+  if (filters.language) {
+    list = list.filter((movie) => movie.original_language === filters.language);
   }
 
   switch (filters.sort) {
@@ -203,13 +267,25 @@ const filteredResults = computed(() => {
   return list;
 });
 
+const isDefaultFilters = computed(() => {
+  return (
+    filters.sort === 'popularity' &&
+    filters.genre === 0 &&
+    filters.language === '' &&
+    filters.minScore === 0 &&
+    filters.year.trim() === '' &&
+    filters.onlyPoster === true
+  );
+});
+
+const hasActiveFilters = computed(() => !isDefaultFilters.value);
+
 const scheduleSearch = () => {
   if (debounceId.value) window.clearTimeout(debounceId.value);
-  if (!query.value.trim()) {
+  const term = query.value.trim();
+  const shouldRequest = term || !isDefaultFilters.value || results.value.length === 0;
+  if (!shouldRequest) {
     activeRequestId.value += 1;
-    results.value = [];
-    lastQueried.value = '';
-    error.value = null;
     loading.value = false;
     return;
   }
@@ -218,6 +294,11 @@ const scheduleSearch = () => {
 
 watch(
   () => query.value,
+  () => scheduleSearch()
+);
+
+watch(
+  () => [filters.sort, filters.genre, filters.language, filters.minScore, filters.year],
   () => scheduleSearch()
 );
 
@@ -232,22 +313,34 @@ onBeforeUnmount(() => {
 const triggerSearch = async () => {
   if (debounceId.value) window.clearTimeout(debounceId.value);
   const term = query.value.trim();
-  if (!term) return;
-
+  const isDiscover = !term;
   const requestId = ++activeRequestId.value;
   loading.value = true;
   error.value = null;
 
   try {
-    const data = await fetchMovies(TMDB_ENDPOINTS.search, {
-      query: term,
-      include_adult: 'false',
-      page: 1,
-    });
+    const data = isDiscover
+      ? await fetchMovies(TMDB_ENDPOINTS.discover, {
+          include_adult: 'false',
+          page: 1,
+          sort_by: sortToApiParam[filters.sort],
+          ...(filters.genre ? { with_genres: filters.genre } : {}),
+          ...(filters.language ? { with_original_language: filters.language } : {}),
+          ...(filters.year.trim().length === 4 ? { primary_release_year: filters.year.trim() } : {}),
+          ...(filters.minScore > 0 ? { 'vote_average.gte': filters.minScore } : {}),
+        })
+      : await fetchMovies(TMDB_ENDPOINTS.search, {
+          query: term,
+          include_adult: 'false',
+          page: 1,
+        });
     if (requestId !== activeRequestId.value) return;
-    results.value = data;
-    lastQueried.value = term;
-    pushRecent(term);
+    const hydrated = filters.onlyPoster ? data.filter((m) => !!m.poster_path) : data;
+    results.value = hydrated;
+    lastQueried.value = isDiscover ? '필터 검색' : term;
+    if (!isDiscover) {
+      pushRecent(term);
+    }
   } catch (e) {
     console.error(e);
     if (requestId !== activeRequestId.value) return;
@@ -280,11 +373,19 @@ const clearRecent = () => {
 
 const clearQuery = () => {
   query.value = '';
-  results.value = [];
-  lastQueried.value = '';
   error.value = null;
   activeRequestId.value += 1;
   loading.value = false;
+  scheduleSearch();
+};
+
+const resetFilters = () => {
+  filters.sort = 'popularity';
+  filters.genre = 0;
+  filters.language = '';
+  filters.minScore = 0;
+  filters.year = '';
+  filters.onlyPoster = true;
 };
 
 const showDetail = ref(false);
@@ -484,6 +585,15 @@ const closeDetail = () => {
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.06);
+  color: #f8f8f8;
+}
+
+.select {
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.07);
   color: #f8f8f8;
 }
 
