@@ -105,7 +105,7 @@
         >
           이전
         </button>
-        <span class="page-indicator">페이지 {{ tablePage }} / {{ totalTablePages }}</span>
+        <span class="page-indicator">페이지 {{ pageGroupLabel }}</span>
         <button
           type="button"
           class="pill ghost"
@@ -181,6 +181,12 @@ const displayedTableMovies = computed(() => {
 
 const canGoPrev = computed(() => tablePage.value > 1);
 const canGoNext = computed(() => hasMore.value || tablePage.value < totalTablePages.value);
+const pageGroupLabel = computed(() => {
+  const groupIndex = Math.floor((tablePage.value - 1) / 5);
+  const start = groupIndex * 5 + 1;
+  const end = (groupIndex + 1) * 5;
+  return `${start} / ${end}`;
+});
 
 const isSentinelVisible = () => {
   const el = sentinel.value;
@@ -509,6 +515,12 @@ onBeforeUnmount(() => {
   min-height: 132px;
 }
 
+.table-row.head {
+  min-height: 0;
+  height: 52px;
+  align-items: center;
+}
+
 .table-row:last-child {
   border-bottom: none;
 }
@@ -545,7 +557,7 @@ onBeforeUnmount(() => {
   font-size: 0.9rem;
   line-height: 1.4;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
