@@ -299,21 +299,22 @@ const setScrollLock = (locked: boolean) => {
 
 const setViewMode = async (mode: ViewMode) => {
   if (viewMode.value === mode) return;
+  if (observer.value) observer.value.disconnect();
   viewMode.value = mode;
   tablePage.value = 1;
   lastNav.value = null;
+  resetDataState();
+  setScrollLock(mode === 'table');
+
+  await nextTick();
 
   if (mode === 'infinite') {
-    setScrollLock(false);
-    await nextTick();
     setupObserver();
-    maybeLoadMoreIfVisible();
-  } else if (observer.value) {
-    observer.value.disconnect();
-    setScrollLock(true);
-    await nextTick();
+  } else {
     recomputeTablePageSize();
   }
+
+  await loadNext();
 };
 
 const formatDate = (date: string) => {
@@ -353,6 +354,14 @@ const goNextPage = async () => {
   const total = Math.max(1, Math.ceil(movies.value.length / tablePageSize.value));
   tablePage.value = Math.min(targetPage, total);
   lastNav.value = 'next';
+};
+
+const resetDataState = () => {
+  movies.value = [];
+  page.value = 1;
+  hasMore.value = true;
+  error.value = null;
+  loading.value = false;
 };
 
 const openDetail = async (movie: Movie) => {
