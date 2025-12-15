@@ -28,12 +28,12 @@
       <div class="filter-row">
         <div class="filter-group">
           <span class="label">정렬</span>
-          <div class="pill-group">
+          <div class="pill-group sort-wide">
             <button
               v-for="option in sortOptions"
               :key="option.value"
               type="button"
-              class="pill ghost"
+              class="pill ghost wide"
               :class="{ active: filters.sort === option.value }"
               @click="filters.sort = option.value"
             >
@@ -41,10 +41,12 @@
             </button>
           </div>
         </div>
+      </div>
 
-        <div class="filter-group">
-          <label class="label" for="genre">장르</label>
-          <select id="genre" v-model.number="filters.genre" class="select">
+      <div class="filter-selects">
+        <div class="select-group">
+          <label class="select-label" for="genre">장르</label>
+          <select id="genre" v-model.number="filters.genre" class="select dark">
             <option :value="0">전체</option>
             <option v-for="g in genres" :key="g.id" :value="g.id">
               {{ g.name }}
@@ -52,9 +54,9 @@
           </select>
         </div>
 
-        <div class="filter-group">
-          <label class="label" for="language">언어</label>
-          <select id="language" v-model="filters.language" class="select">
+        <div class="select-group">
+          <label class="select-label" for="language">언어</label>
+          <select id="language" v-model="filters.language" class="select dark">
             <option value="">전체</option>
             <option v-for="lang in languages" :key="lang.code" :value="lang.code">
               {{ lang.label }}
@@ -62,25 +64,16 @@
           </select>
         </div>
 
-        <div class="filter-group">
-          <label class="label" for="rating">평점</label>
-          <select id="rating" v-model="filters.ratingRange" class="select">
-            <option v-for="option in ratingOptions" :key="option.value" :value="option.value">
-              {{ option.label }}
-            </option>
-          </select>
-        </div>
-
-        <div class="filter-group">
-          <label class="label" for="year">연도</label>
-          <select id="year" v-model="filters.yearRange" class="select">
+        <div class="select-group">
+          <label class="select-label" for="year">연도</label>
+          <select id="year" v-model="filters.yearRange" class="select dark">
             <option v-for="option in yearRanges" :key="option.value" :value="option.value">
               {{ option.label }}
             </option>
           </select>
         </div>
 
-        <button type="button" class="pill ghost reset" @click="resetFilters" :disabled="!hasActiveFilters">
+        <button type="button" class="pill reset wide" @click="resetFilters" :disabled="!hasActiveFilters">
           초기화
         </button>
       </div>
@@ -112,7 +105,7 @@
 
       <Loading v-if="loading" />
 
-      <p v-else-if="!lastQueried" class="placeholder">검색어나 필터를 설정하면 TMDB에서 찾아볼게요.</p>
+      <p v-else-if="!lastQueried" class="placeholder muted-center">검색어나 필터를 설정하면 TMDB에서 찾아볼게요.</p>
       <p v-else-if="!filteredResults.length && !error" class="placeholder">
         현재 필터에 맞는 영화가 없어요.
       </p>
@@ -151,7 +144,6 @@ import { readJSON, writeJSON } from '@/utils/storage';
 
 type SortOption = 'popularity' | 'recent' | 'rating' | 'title';
 type SortValue = SortOption | '';
-type RatingKey = 'all' | '9-10' | '8-9' | '7-8' | '6-7' | '5-6' | 'sub-5';
 type YearRangeKey = 'all' | 'pre-1990' | '1990-1999' | '2000-2009' | '2010-2019' | '2020-plus';
 type MovieDetail = {
   overview?: string;
@@ -170,12 +162,12 @@ const results = ref<Movie[]>([]);
 const recentSearches = ref<string[]>([]);
 const activeRequestId = ref(0);
 const debounceId = ref<number | null>(null);
+const allowLiveSearch = ref(false);
 
 const filters = reactive({
   sort: '' as SortValue,
   genre: 0 as number,
   language: '' as string,
-  ratingRange: 'all' as RatingKey,
   yearRange: 'all' as YearRangeKey,
 });
 
@@ -192,16 +184,6 @@ const sortToApiParam: Record<SortOption, string> = {
   rating: 'vote_average.desc',
   title: 'original_title.asc',
 };
-
-const ratingOptions: { value: RatingKey; label: string; min: number; max: number }[] = [
-  { value: 'all', label: '전체', min: 0, max: 10 },
-  { value: '9-10', label: '9~10', min: 9, max: 10 },
-  { value: '8-9', label: '8~9', min: 8, max: 9 },
-  { value: '7-8', label: '7~8', min: 7, max: 8 },
-  { value: '6-7', label: '6~7', min: 6, max: 7 },
-  { value: '5-6', label: '5~6', min: 5, max: 6 },
-  { value: 'sub-5', label: '5점 이하', min: 0, max: 5 },
-];
 
 const yearRanges: { value: YearRangeKey; label: string; min?: number; max?: number }[] = [
   { value: 'all', label: '전체' },
@@ -234,14 +216,6 @@ const languages = [
 
 const filteredResults = computed(() => {
   let list = [...results.value];
-
-  const rating = ratingOptions.find((r) => r.value === filters.ratingRange);
-  if (rating && rating.value !== 'all') {
-    list = list.filter((movie) => {
-      const score = movie.vote_average ?? 0;
-      return score >= rating.min && score <= rating.max;
-    });
-  }
 
   const yearRange = yearRanges.find((r) => r.value === filters.yearRange);
   if (yearRange && yearRange.value !== 'all') {
@@ -284,7 +258,6 @@ const isDefaultFilters = computed(() => {
     filters.sort === '' &&
     filters.genre === 0 &&
     filters.language === '' &&
-    filters.ratingRange === 'all' &&
     filters.yearRange === 'all'
   );
 });
@@ -292,6 +265,11 @@ const isDefaultFilters = computed(() => {
 const hasActiveFilters = computed(() => !isDefaultFilters.value);
 
 const scheduleSearch = () => {
+  if (!allowLiveSearch.value) {
+    activeRequestId.value += 1;
+    loading.value = false;
+    return;
+  }
   if (debounceId.value) window.clearTimeout(debounceId.value);
   const term = query.value.trim();
   const shouldRequest = term || !isDefaultFilters.value;
@@ -309,7 +287,7 @@ watch(
 );
 
 watch(
-  () => [filters.sort, filters.genre, filters.language, filters.ratingRange, filters.yearRange],
+  () => [filters.sort, filters.genre, filters.language, filters.yearRange],
   () => scheduleSearch()
 );
 
@@ -322,11 +300,11 @@ onBeforeUnmount(() => {
 });
 
 const triggerSearch = async () => {
+  allowLiveSearch.value = true;
   if (debounceId.value) window.clearTimeout(debounceId.value);
   const term = query.value.trim();
   const isDiscover = !term;
   const sortParam = filters.sort ? sortToApiParam[filters.sort] : sortToApiParam.popularity;
-  const rating = ratingOptions.find((r) => r.value === filters.ratingRange);
   const yearRange = yearRanges.find((y) => y.value === filters.yearRange);
   const requestId = ++activeRequestId.value;
   loading.value = true;
@@ -340,7 +318,6 @@ const triggerSearch = async () => {
           sort_by: sortParam,
           ...(filters.genre ? { with_genres: filters.genre } : {}),
           ...(filters.language ? { with_original_language: filters.language } : {}),
-          ...(rating && rating.value !== 'all' ? { 'vote_average.gte': rating.min, 'vote_average.lte': rating.max } : {}),
           ...(yearRange && yearRange.value !== 'all'
             ? {
                 ...(typeof yearRange.min === 'number'
@@ -405,7 +382,6 @@ const resetFilters = () => {
   filters.sort = '';
   filters.genre = 0;
   filters.language = '';
-  filters.ratingRange = 'all';
   filters.yearRange = 'all';
   results.value = [];
   lastQueried.value = '';
@@ -526,6 +502,7 @@ const closeDetail = () => {
   font-weight: 800;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  width: 100%;
 }
 
 .search-btn:disabled {
@@ -543,18 +520,39 @@ const closeDetail = () => {
   flex-wrap: wrap;
   gap: 10px;
   align-items: center;
+  width: 100%;
 }
 
 .filter-group {
   display: grid;
   gap: 6px;
   min-width: 0;
+  width: 100%;
 }
 
 .filter-group.inline {
   grid-template-columns: auto auto;
   align-items: center;
   gap: 6px;
+}
+
+.filter-selects {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  align-items: end;
+  margin-top: 8px;
+}
+
+.select-group {
+  display: grid;
+  gap: 4px;
+}
+
+.select-label {
+  font-weight: 800;
+  color: #f6f6f6;
+  font-size: 0.95rem;
 }
 
 .label {
@@ -565,17 +563,30 @@ const closeDetail = () => {
 
 .pill-group {
   display: inline-flex;
-  gap: 6px;
+  gap: 10px;
   flex-wrap: wrap;
+  width: 100%;
+}
+
+.pill-group.sort-wide {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  align-items: stretch;
 }
 
 .pill {
-  padding: 8px 12px;
+  padding: clamp(8px, 2vw, 12px) clamp(12px, 3vw, 18px);
   border-radius: 12px;
   border: 1px solid transparent;
   font-weight: 700;
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border 0.2s ease;
+  min-height: 42px;
+  height: 100%;
+  white-space: nowrap;
 }
 
 .pill.ghost {
@@ -591,16 +602,49 @@ const closeDetail = () => {
   box-shadow: 0 10px 24px rgba(255, 61, 90, 0.28);
 }
 
-.pill.reset {
-  background: linear-gradient(135deg, #ff3d5a, #ff7f66);
-  color: #0b0c14;
-  border-color: transparent;
-  box-shadow: 0 10px 24px rgba(255, 61, 90, 0.28);
+.pill.wide {
+  min-width: 0;
+  justify-content: center;
+  width: 100%;
 }
 
-.pill.reset:hover:not(:disabled) {
+.pill.reset {
+  padding: 12px 18px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #ff3d5a, #ff7f66);
+  color: #0b0c14;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  width: 100%;
+}
+
+.pill.reset:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.pill.reset:not(:disabled):hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(255, 61, 90, 0.35);
+  box-shadow: 0 10px 24px rgba(255, 61, 90, 0.3);
+}
+
+.filter-selects .pill.reset {
+  align-self: flex-end;
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 720px) {
+  .pill-group.sort-wide {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .filter-selects {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
 }
 
 .checkbox {
@@ -628,16 +672,25 @@ const closeDetail = () => {
 
 .select {
   width: 100%;
-  padding: 9px 10px;
+  padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: #161822;
-  color: #f8f8f8;
+  border: 1px solid #f5f5f5;
+  background: #0b0c14;
+  color: #f5f5f5;
+  font-weight: 800;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #f5f5f5 50%), linear-gradient(135deg, #f5f5f5 50%, transparent 50%);
+  background-position: calc(100% - 18px) center, calc(100% - 12px) center;
+  background-repeat: no-repeat;
+  background-size: 6px 6px, 6px 6px;
+  height: 46px;
 }
 
 .select option {
-  background: #0f1118;
-  color: #f8f8f8;
+  background: #0b0c14;
+  color: #f5f5f5;
 }
 .filter-group .value {
   font-weight: 800;
@@ -699,7 +752,13 @@ const closeDetail = () => {
 
 .placeholder {
   margin: 0;
-  color: #c6c6c6;
+  color: #ff3d5a;
+}
+
+.placeholder.muted-center {
+  display: grid;
+  place-items: center;
+  padding: 32px 0;
 }
 
 .grid {

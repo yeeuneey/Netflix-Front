@@ -2,7 +2,7 @@
 <template>
   <div class="loading">
     <div class="spinner"></div>
-    <span>Loading movies...</span>
+    <span>...</span>
   </div>
 </template>
 
