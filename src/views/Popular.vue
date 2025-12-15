@@ -35,10 +35,50 @@
           <h2>무한 스크롤 리스트</h2>
           <p class="desc"> </p>
         </div>
+        <div class="view-toggle" role="group" aria-label="View mode">
+          <button
+            type="button"
+            class="pill ghost"
+            :class="{ active: viewMode === 'infinite' }"
+            @click="setViewMode('infinite')"
+          >
+            Infinite Scroll
+          </button>
+          <button
+            type="button"
+            class="pill ghost"
+            :class="{ active: viewMode === 'table' }"
+            @click="setViewMode('table')"
+          >
+            Table View
+          </button>
+        </div>
       </div>
 
-      <div class="movies-grid">
+      <div v-if="viewMode === 'infinite'" class="movies-grid">
         <MovieCard v-for="movie in movies" :key="movie.id" :movie="movie" />
+      </div>
+
+      <div v-else class="table-wrapper" role="table" aria-label="Popular movies table">
+        <div class="table-head" role="rowgroup">
+          <div class="table-row head" role="row">
+            <div class="cell narrow" role="columnheader">#</div>
+            <div class="cell title-col" role="columnheader">Title</div>
+            <div class="cell" role="columnheader">Release</div>
+            <div class="cell narrow" role="columnheader">Rating</div>
+          </div>
+        </div>
+        <div class="table-body" role="rowgroup">
+          <div v-for="(movie, idx) in movies" :key="movie.id" class="table-row" role="row">
+            <div class="cell narrow" role="cell">{{ idx + 1 }}</div>
+            <div class="cell title-col" role="cell">
+              <div class="title-main">{{ movie.title }}</div>
+              <div class="title-sub">{{ movie.overview }}</div>
+            </div>
+            <div class="cell" role="cell">{{ formatDate(movie.release_date) }}</div>
+            <div class="cell narrow" role="cell">{{ formatScore(movie.vote_average) }}</div>
+          </div>
+        </div>
       </div>
 
       <div class="loader" v-if="loading">
@@ -49,10 +89,19 @@
         </span>
       </div>
 
+      <button
+        v-if="viewMode === 'table' && hasMore && !loading && !error"
+        type="button"
+        class="pill ghost load-more"
+        @click="loadNext"
+      >
+        페이지 더보기
+      </button>
+
       <p class="error" v-if="error">{{ error }}</p>
       <p class="end" v-else-if="!hasMore">마지막 페이지까지 모두 로딩 완료했어요.</p>
 
-      <div ref="sentinel" class="sentinel" aria-hidden="true"></div>
+      <div v-if="viewMode === 'infinite'" ref="sentinel" class="sentinel" aria-hidden="true"></div>
     </section>
 
     <button
@@ -68,10 +117,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import MovieCard from '@/components/common/MovieCard.vue';
 import type { Movie } from '@/types/movie';
 import { fetchMoviesPage, TMDB_ENDPOINTS } from '@/api/tmdb';
+
+type ViewMode = 'table' | 'infinite';
 
 const movies = ref<Movie[]>([]);
 const page = ref(1);
@@ -81,6 +132,7 @@ const error = ref<string | null>(null);
 const sentinel = ref<HTMLElement | null>(null);
 const observer = ref<IntersectionObserver | null>(null);
 const canScrollTop = ref(false);
+const viewMode = ref<ViewMode>('infinite');
 
 const statusText = computed(() => {
   if (error.value) return '로드 실패';
@@ -162,6 +214,29 @@ const handleScroll = () => {
 
 const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+const setViewMode = async (mode: ViewMode) => {
+  if (viewMode.value === mode) return;
+  viewMode.value = mode;
+
+  if (mode === 'infinite') {
+    await nextTick();
+    setupObserver();
+    maybeLoadMoreIfVisible();
+  } else if (observer.value) {
+    observer.value.disconnect();
+  }
+};
+
+const formatDate = (date: string) => {
+  if (!date) return '-';
+  return date;
+};
+
+const formatScore = (score: number) => {
+  if (!Number.isFinite(score)) return '-';
+  return score.toFixed(1);
 };
 
 onMounted(() => {
@@ -278,10 +353,91 @@ onBeforeUnmount(() => {
   color: #cbd3e8;
 }
 
+.view-toggle {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.view-toggle .pill {
+  min-width: 132px;
+  justify-content: center;
+}
+
+.view-toggle .pill.active {
+  background: linear-gradient(135deg, #ff3d5a, #ff7f66);
+  color: #0b0c14;
+  border-color: transparent;
+  box-shadow: 0 10px 24px rgba(255, 61, 90, 0.28);
+}
+
 .movies-grid {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.table-wrapper {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.table-head,
+.table-body {
+  display: grid;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 64px 1fr 160px 100px;
+  gap: 0;
+  align-items: start;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.table-row:last-child {
+  border-bottom: none;
+}
+
+.table-row.head {
+  background: rgba(255, 255, 255, 0.06);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.cell {
+  padding: 12px 14px;
+  color: #e6e8f0;
+}
+
+.cell.narrow {
+  width: 100%;
+  font-weight: 700;
+  color: #cbd3e8;
+}
+
+.title-col {
+  display: grid;
+  gap: 6px;
+}
+
+.title-main {
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.title-sub {
+  color: #cbd3e8;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .loader,
@@ -403,6 +559,11 @@ onBeforeUnmount(() => {
   transform: translateY(-1px);
 }
 
+.load-more {
+  width: fit-content;
+  justify-self: center;
+}
+
 .eyebrow {
   margin: 0;
   color: #9aa6c8;
@@ -425,6 +586,17 @@ onBeforeUnmount(() => {
   .popular-page {
     margin-top: 68px;
   }
+
+  .table-row {
+    grid-template-columns: 48px 1fr;
+  }
+
+  .table-row .cell:nth-child(3),
+  .table-row .cell:nth-child(4) {
+    padding-top: 0;
+    padding-bottom: 10px;
+  }
+
   .top-button {
     right: 16px;
     bottom: 16px;
