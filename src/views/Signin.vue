@@ -454,7 +454,7 @@ const handleRegister = async (payload: {
 
 .curtain-panel {
   position: relative;
-  width: 52%;
+  width: 50%;
   background: radial-gradient(circle at 20% 20%, rgba(255, 120, 120, 0.18), transparent 55%),
     linear-gradient(135deg, #9d0000 0%, #6d0000 50%, #4d0000 100%);
   box-shadow: inset -4px 0 16px rgba(0, 0, 0, 0.35), 0 12px 28px rgba(0, 0, 0, 0.45);
@@ -517,11 +517,11 @@ const handleRegister = async (payload: {
   position: relative;
   z-index: 1;
   display: block;
-  width: min(760px, 100%);
+  width: min(640px, 100%);
   background: rgba(12, 14, 24, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 28px;
-  padding: 32px;
+  padding: 26px 20px;
   box-shadow: 0 28px 90px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(12px);
   margin: 0 auto;
@@ -667,7 +667,7 @@ const handleRegister = async (payload: {
   background: linear-gradient(180deg, rgba(18, 20, 30, 0.96), rgba(12, 14, 22, 0.96));
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
-  padding: 26px 22px 28px;
+  padding: 22px 18px 24px;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.04);
   transform-origin: center;
   overflow: hidden;
