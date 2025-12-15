@@ -1,5 +1,5 @@
 <template>
-  <article class="movie-card" @click="toggleWishlist">
+  <article class="movie-card" @click="emitDetail">
     <div class="poster-wrapper">
       <div class="poster-chrome">
         <div v-if="rank" :class="['rank-badge', rankTierClass]">
@@ -8,13 +8,13 @@
           <span class="rank-glow" aria-hidden="true"></span>
         </div>
         <button
-          v-if="isWished"
           class="wishlist-indicator"
           type="button"
           :aria-pressed="isWished"
+          :title="isWished ? '위시리스트에서 제거' : '위시리스트에 추가'"
           @click.stop="toggleWishlist"
         >
-          <i class="fa-solid fa-heart"></i>
+          <i :class="isWished ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
         </button>
       </div>
 
@@ -251,8 +251,8 @@ const emitDetail = () => emit('detail', props.movie);
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: none;
-  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.4);
   color: #f4f4f4;
   display: inline-flex;
   align-items: center;
@@ -265,6 +265,7 @@ const emitDetail = () => emit('detail', props.movie);
 .wishlist-indicator:hover {
   transform: scale(1.05);
   background: rgba(229, 9, 20, 0.8);
+  border-color: rgba(229, 9, 20, 0.8);
 }
 
 .wishlist-indicator i {
@@ -273,6 +274,7 @@ const emitDetail = () => emit('detail', props.movie);
 }
 .wishlist-indicator[aria-pressed='true'] {
   background: rgba(229, 9, 20, 0.9);
+  border-color: rgba(229, 9, 20, 0.95);
 }
 .wishlist-indicator[aria-pressed='true'] i {
   color: #fff;
