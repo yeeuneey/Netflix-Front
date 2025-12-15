@@ -3,21 +3,17 @@
     <section v-if="hero" class="hero" :style="heroStyle">
       <div class="hero__overlay"></div>
       <div class="hero__content">
-        <p class="hero__label">NEW! 대세 콘텐츠</p>
+        <p class="hero__label">NEW! 이번 주 트렌딩</p>
         <h1 class="hero__title">{{ hero.title }}</h1>
         <p class="hero__desc">
-          {{ hero.overview || '영화 상세 설명 로딩 중입니다...' }}
+          {{ hero.overview || '줄거리가 준비되지 않았어요.' }}
         </p>
         <div class="hero__meta">
           <span v-if="hero.release_date">{{ hero.release_date.slice(0, 4) }}</span>
-          <span v-if="hero.vote_average">★ {{ hero.vote_average?.toFixed(1) }}</span>
+          <span v-if="hero.vote_average">평점 {{ hero.vote_average?.toFixed(1) }}</span>
         </div>
         <div class="hero__actions">
-          <button type="button" class="btn play">
-            <i class="fa-solid fa-play"></i>
-            재생
-          </button>
-          <button type="button" class="btn info">
+          <button type="button" class="btn info" :disabled="detailLoading" @click="handleHeroDetail">
             <i class="fa-solid fa-circle-info"></i>
             상세 정보
           </button>
@@ -25,58 +21,179 @@
       </div>
     </section>
 
-    <SectionMovieList
-      title="오늘의 TOP 20"
-      :path="TMDB_ENDPOINTS.trendingWeek"
-      :show-rank="true"
-    />
+    <div class="section-block">
+      <MovieSection
+        title="지금 뜨는 영화 TOP 20"
+        :movies="trending"
+        :loading="loading.trending"
+        :show-rank="true"
+      />
+      <p v-if="error.trending" class="error-text">{{ error.trending }}</p>
+    </div>
 
-    <SectionMovieList
-      title="평점 TOP 20"
-      :path="TMDB_ENDPOINTS.topRated"
-      :show-rank="true"
-    />
+    <div class="section-block">
+      <MovieSection
+        title="현재 상영작"
+        :movies="nowPlaying"
+        :loading="loading.nowPlaying"
+      />
+      <p v-if="error.nowPlaying" class="error-text">{{ error.nowPlaying }}</p>
+    </div>
 
-    <SectionMovieList
-      title="대세 콘텐츠"
-      :path="TMDB_ENDPOINTS.popular"
-      action-label="전체보기"
-      action-to="/popular"
-    />
+    <div class="section-block">
+      <MovieSection
+        title="평점 상위 TOP 20"
+        :movies="topRated"
+        :loading="loading.topRated"
+        :show-rank="true"
+      />
+      <p v-if="error.topRated" class="error-text">{{ error.topRated }}</p>
+    </div>
 
-    <SectionMovieList
-      title="개봉 예정"
-      :path="TMDB_ENDPOINTS.upcoming"
+    <div class="section-block">
+      <MovieSection
+        title="인기 급상승"
+        :movies="popular"
+        :loading="loading.popular"
+      />
+      <p v-if="error.popular" class="error-text">{{ error.popular }}</p>
+    </div>
+
+    <div class="section-block">
+      <MovieSection
+        title="개봉 예정작"
+        :movies="upcoming"
+        :loading="loading.upcoming"
+      />
+      <p v-if="error.upcoming" class="error-text">{{ error.upcoming }}</p>
+    </div>
+
+    <MovieDetailModal
+      v-if="showDetail && selectedMovie"
+      :movie="selectedMovie"
+      :detail="detailData"
+      :loading="detailLoading"
+      :error="detailError"
+      @close="closeDetail"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
-import { useMovies } from '@/composables/useMovies'
-import SectionMovieList from '@/components/SectionMovieList.vue'
-import { TMDB_ENDPOINTS } from '@/api/tmdb'
+import { computed, onMounted, reactive, ref } from 'vue';
+import type { Movie } from '@/types/movie';
+import MovieSection from '@/components/home/MovieSection.vue';
+import { fetchMovies, TMDB_ENDPOINTS } from '@/api/tmdb';
+import MovieDetailModal from '@/components/common/MovieDetailModal.vue';
+import { tmdbClient } from '@/api/tmdb/client';
 
-const { movies: heroMovies, load: loadHero } = useMovies(TMDB_ENDPOINTS.trendingWeek)
+const trending = ref<Movie[]>([]);
+const nowPlaying = ref<Movie[]>([]);
+const topRated = ref<Movie[]>([]);
+const popular = ref<Movie[]>([]);
+const upcoming = ref<Movie[]>([]);
 
-onMounted(() => loadHero())
+const loading = reactive({
+  trending: true,
+  nowPlaying: true,
+  topRated: true,
+  popular: true,
+  upcoming: true,
+});
 
-const hero = computed(() => heroMovies.value[0])
+const error = reactive<Record<keyof typeof loading, string | null>>({
+  trending: null,
+  nowPlaying: null,
+  topRated: null,
+  popular: null,
+  upcoming: null,
+});
+
+type MovieDetail = {
+  overview?: string;
+  release_date?: string;
+  runtime?: number | null;
+  genres?: { id: number; name: string }[];
+  production_countries?: { iso_3166_1: string; name: string }[];
+  cast?: { name: string; character?: string }[];
+};
+
+const loadSection = async (key: keyof typeof loading, target: typeof trending, path: string) => {
+  loading[key] = true;
+  error[key] = null;
+  try {
+    target.value = await fetchMovies(path);
+  } catch (e) {
+    console.error(e);
+    error[key] = '영화 목록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.';
+  } finally {
+    loading[key] = false;
+  }
+};
+
+onMounted(async () => {
+  await Promise.all([
+    loadSection('trending', trending, TMDB_ENDPOINTS.trendingWeek),
+    loadSection('nowPlaying', nowPlaying, TMDB_ENDPOINTS.nowPlaying),
+    loadSection('topRated', topRated, TMDB_ENDPOINTS.topRated),
+    loadSection('popular', popular, TMDB_ENDPOINTS.popular),
+    loadSection('upcoming', upcoming, TMDB_ENDPOINTS.upcoming),
+  ]);
+});
+
+const hero = computed(() => trending.value[0]);
 const heroStyle = computed(() => {
-  if (!hero.value) return {}
-  const src = hero.value.backdrop_path || hero.value.poster_path
-  if (!src) return {}
+  if (!hero.value) return {};
+  const src = hero.value.backdrop_path || hero.value.poster_path;
+  if (!src) return {};
   return {
     backgroundImage: `linear-gradient(90deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0.65) 100%), url(https://image.tmdb.org/t/p/original${src})`,
+  };
+});
+
+const showDetail = ref(false);
+const detailLoading = ref(false);
+const detailError = ref<string | null>(null);
+const selectedMovie = ref<Movie | null>(null);
+const detailData = ref<MovieDetail | null>(null);
+
+const openDetail = async (movie: Movie) => {
+  selectedMovie.value = movie;
+  showDetail.value = true;
+  detailLoading.value = true;
+  detailError.value = null;
+  detailData.value = null;
+  try {
+    const [detailRes, creditRes] = await Promise.all([
+      tmdbClient.get(`/movie/${movie.id}`),
+      tmdbClient.get(`/movie/${movie.id}/credits`),
+    ]);
+    detailData.value = {
+      ...detailRes.data,
+      cast: creditRes.data?.cast?.slice(0, 10) ?? [],
+    };
+  } catch (e) {
+    console.error(e);
+    detailError.value = '상세 정보를 불러오지 못했어요. 잠시 후 다시 시도해주세요.';
+  } finally {
+    detailLoading.value = false;
   }
-})
+};
+
+const handleHeroDetail = () => {
+  if (hero.value) openDetail(hero.value);
+};
+
+const closeDetail = () => {
+  showDetail.value = false;
+};
 </script>
 
 <style scoped>
 .home {
-  margin-top: 1px;
+  margin-top: 8px;
   display: grid;
-  gap: 1px;
+  gap: 22px;
 }
 
 .hero {
@@ -90,6 +207,17 @@ const heroStyle = computed(() => {
   align-items: flex-end;
   isolation: isolate;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+}
+
+.section-block {
+  display: grid;
+  gap: 6px;
+}
+
+.error-text {
+  margin: 0;
+  color: #ff9ca2;
+  font-weight: 700;
 }
 
 .hero__overlay {
@@ -154,11 +282,6 @@ const heroStyle = computed(() => {
   transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
-.btn.play {
-  background: #fff;
-  color: #000;
-}
-
 .btn.info {
   background: rgba(255, 255, 255, 0.14);
   color: #fff;
@@ -171,8 +294,8 @@ const heroStyle = computed(() => {
 
 @media (max-width: 1024px) {
   .home {
-    gap: 1px;
-    margin-top: 1x;
+    gap: 18px;
+    margin-top: 6px;
   }
   .hero__content {
     max-width: 100%;
@@ -181,7 +304,7 @@ const heroStyle = computed(() => {
 
 @media (max-width: 768px) {
   .home {
-    margin-top: 1px;
+    margin-top: 4px;
   }
   .hero {
     min-height: 360px;
@@ -194,8 +317,8 @@ const heroStyle = computed(() => {
 
 @media (max-width: 560px) {
   .home {
-    gap: 1px;
-    margin-top: 1px;
+    gap: 14px;
+    margin-top: 2px;
   }
   .hero {
     min-height: 320px;
