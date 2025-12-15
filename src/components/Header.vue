@@ -8,17 +8,18 @@
 
     <nav class="nav-center">
       <div class="nav-links">
-        <button @click="go('/')" :class="{ active: route.path === '/' }">메인</button>
-        <button @click="go('/popular')" :class="{ active: route.path === '/popular' }">대세 콘텐츠</button>
-        <button @click="go('/search')" :class="{ active: route.path === '/search' }">찾아보기</button>
-        <button @click="go('/wishlist')" :class="{ active: route.path === '/wishlist' }">내가 찜한 리스트</button>
+        <button
+          v-for="link in navLinks"
+          :key="link.path"
+          @click="go(link.path)"
+          :class="{ active: route.path === link.path }"
+        >
+          {{ link.label }}
+        </button>
       </div>
     </nav>
 
     <div class="actions" v-if="!isAuthPage">
-      <button class="icon-btn" aria-label="알림">
-        <i class="fas fa-bell"></i>
-      </button>
       <template v-if="!isLoggedIn">
         <button class="ghost" @click="go('/signin')">
           <i class="fas fa-user"></i>
@@ -35,6 +36,20 @@
           <span>로그아웃</span>
         </button>
       </template>
+      <button class="menu-btn" type="button" aria-label="메뉴 열기" @click="toggleMenu">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div v-if="isMenuOpen" class="menu-dropdown">
+        <button
+          v-for="link in navLinks"
+          :key="link.path"
+          type="button"
+          :class="{ active: route.path === link.path }"
+          @click="goAndClose(link.path)"
+        >
+          {{ link.label }}
+        </button>
+      </div>
     </div>
   </header>
 </template>
@@ -51,10 +66,25 @@ const route = useRoute();
 const authStore = useAuthStore();
 const { isLoggedIn, currentUser } = storeToRefs(authStore);
 
+const navLinks = [
+  { path: '/', label: '메인' },
+  { path: '/popular', label: '인기 콘텐츠' },
+  { path: '/search', label: '찾아보기' },
+  { path: '/wishlist', label: '내가 찜한 리스트' },
+];
+
 const isScrolled = ref(false);
 const isAuthPage = computed(() => route.path === '/signin');
+const isMenuOpen = ref(false);
 
 const go = (path: string) => router.push(path);
+const goAndClose = (path: string) => {
+  isMenuOpen.value = false;
+  router.push(path);
+};
+const toggleMenu = () => {
+  isMenuOpen.value = !isMenuOpen.value;
+};
 
 const logout = () => {
   logoutUtil();
@@ -150,7 +180,6 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
 .nav-links button.active {
   background: linear-gradient(135deg, #ff3b3b, #e50914 70%, #ff6a6a);
   color: #fff;
-  box-shadow: 0 8px 18px rgba(229, 9, 20, 0.4);
 }
 
 .actions {
@@ -159,37 +188,73 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
   gap: 0.5rem;
   flex: 0 0 auto;
   z-index: 2;
+  position: relative;
+  flex-wrap: wrap;
 }
-.icon-btn {
-  width: 36px;
-  height: 36px;
-  display: inline-flex;
+
+.menu-btn {
+  display: none;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
   background: rgba(255, 255, 255, 0.06);
   color: #f8f8f8;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
-.icon-btn:hover {
-  background: rgba(229, 9, 20, 0.22);
+.menu-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
   border-color: #e50914;
-  transform: translateY(-1px);
+}
+
+.menu-dropdown {
+  position: absolute;
+  top: 58px;
+  right: 12px;
+  min-width: 180px;
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(12, 12, 16, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+}
+.menu-dropdown button {
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f6f6f6;
+  border-radius: 12px;
+  padding: 11px 12px;
+  text-align: left;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.menu-dropdown button.active {
+  background: linear-gradient(135deg, #ff3b3b, #e50914 70%, #ff6a6a);
+  color: #0b0c14;
+}
+.menu-dropdown button:hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .ghost {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.3rem;
-  padding: 0.3rem 0.8rem;
-  border-radius: 999px;
-  border: 1px solid rgba(248, 248, 248, 0.35);
+  padding: 0 0.8rem;
+  min-width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(248, 248, 248, 0.28);
   background: rgba(255, 255, 255, 0.06);
   color: #f8f8f8;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   transition: background 0.2s, border-color 0.2s, transform 0.2s;
 }
 .ghost:hover {
@@ -199,15 +264,22 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
   transform: translateY(-1px);
 }
 .user-id {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   opacity: 0.9;
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  max-width: 160px;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 120px;
+  max-width: min(360px, 60vw);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  padding: 0 12px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(248, 248, 248, 0.18);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 @media (max-width: 1100px) {
@@ -226,15 +298,16 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
     padding: 10px 0.65rem;
   }
   .nav-links {
-    gap: 0.35rem;
-    padding: 0.2rem 0.35rem;
+    display: none;
   }
-  .nav-links button {
-    font-size: 0.88rem;
-    padding: 0.24rem 0.6rem;
+  .menu-btn {
+    display: inline-flex;
   }
   .user-id {
-    display: none;
+    display: inline-flex;
+    font-size: 0.8rem;
+    max-width: min(320px, 80vw);
+    justify-content: center;
   }
 }
 
