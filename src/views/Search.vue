@@ -6,7 +6,7 @@
         <h1>보고 싶은 영화를 찾아보세요</h1>
       </div>
 
-      <form class="search-bar" @submit.prevent="triggerSearch">
+      <form class="search-bar" @submit.prevent="triggerSearch('manual')">
         <div class="input-wrap">
           <i class="fa-solid fa-magnifying-glass"></i>
           <input
@@ -14,7 +14,7 @@
             type="search"
             name="query"
             autocomplete="off"
-            placeholder="제목, 배우, 키워드로 검색"
+            placeholder="제목, 배우 등 2글자 이상 입력해 주세요."
           />
           <button v-if="query" class="clear" type="button" aria-label="Clear" @click="clearQuery">
             <i class="fa-solid fa-xmark"></i>
@@ -139,7 +139,7 @@ import type { Movie } from '@/types/movie';
 import Loading from '@/components/Loading.vue';
 import MovieCard from '@/components/common/MovieCard.vue';
 import MovieDetailModal from '@/components/common/MovieDetailModal.vue';
-import { fetchMovies, TMDB_ENDPOINTS } from '@/api/tmdb';
+import { fetchMoviesPage, TMDB_ENDPOINTS } from '@/api/tmdb';
 import { tmdbClient } from '@/api/tmdb/client';
 import { STORAGE_KEYS } from '@/constants/storage';
 import { readJSON, writeJSON } from '@/utils/storage';
@@ -161,10 +161,16 @@ const lastQueried = ref('');
 const loading = ref(false);
 const error = ref<string | null>(null);
 const rawResults = ref<Movie[]>([]);
+const searchMode = ref<'discover' | 'query' | 'cast'>('discover');
+const castPersonId = ref<number | null>(null);
 const recentSearches = ref<string[]>([]);
 const activeRequestId = ref(0);
 const debounceId = ref<number | null>(null);
-const allowLiveSearch = ref(false);
+const page = ref(1);
+const totalPages = ref(1);
+const loadingMore = ref(false);
+const AUTO_SEARCH_MIN = 2;
+const AUTO_SEARCH_DELAY = 120;
 
 const filters = reactive({
   sort: '' as SortValue,
@@ -249,7 +255,7 @@ const filteredResults = computed(() => {
       list = [...list].sort((a, b) => a.title.localeCompare(b.title));
       break;
     case 'popularity':
-      list = [...list].sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0));
+      list = [...list].sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
       break;
     default:
       break;
@@ -268,22 +274,19 @@ const isDefaultFilters = computed(() => {
 });
 
 const hasActiveFilters = computed(() => !isDefaultFilters.value);
+const hasMore = computed(() => page.value < totalPages.value);
 
 const scheduleSearch = () => {
-  if (!allowLiveSearch.value) {
-    activeRequestId.value += 1;
-    loading.value = false;
-    return;
-  }
   if (debounceId.value) window.clearTimeout(debounceId.value);
   const term = query.value.trim();
-  const shouldRequest = term || !isDefaultFilters.value;
+  const hasEnoughTerm = term.length >= AUTO_SEARCH_MIN;
+  const shouldRequest = hasEnoughTerm || (!term && !isDefaultFilters.value);
   if (!shouldRequest) {
     activeRequestId.value += 1;
     loading.value = false;
     return;
   }
-  debounceId.value = window.setTimeout(() => triggerSearch(), 420);
+  debounceId.value = window.setTimeout(() => triggerSearch('auto'), AUTO_SEARCH_DELAY);
 };
 
 watch(
@@ -298,14 +301,15 @@ watch(
 
 onMounted(() => {
   recentSearches.value = readJSON<string[]>(STORAGE_KEYS.recentSearches, []);
+  window.addEventListener('scroll', handleScroll, { passive: true });
 });
 
 onBeforeUnmount(() => {
   if (debounceId.value) window.clearTimeout(debounceId.value);
+  window.removeEventListener('scroll', handleScroll);
 });
 
-const triggerSearch = async () => {
-  allowLiveSearch.value = true;
+const triggerSearch = async (source: 'auto' | 'manual' = 'auto') => {
   if (debounceId.value) window.clearTimeout(debounceId.value);
   const term = query.value.trim();
   const isDiscover = !term;
@@ -314,35 +318,113 @@ const triggerSearch = async () => {
   const requestId = ++activeRequestId.value;
   loading.value = true;
   error.value = null;
+  page.value = 1;
+  totalPages.value = 1;
+  castPersonId.value = null;
 
   try {
-    const data = isDiscover
-      ? await fetchMovies(TMDB_ENDPOINTS.discover, {
-          include_adult: 'false',
-          page: 1,
-          sort_by: sortParam,
-          ...(filters.genre ? { with_genres: filters.genre } : {}),
-          ...(filters.language ? { with_original_language: filters.language } : {}),
-          ...(yearRange && yearRange.value !== 'all'
-            ? {
-                ...(typeof yearRange.min === 'number'
-                  ? { 'primary_release_date.gte': `${yearRange.min}-01-01` }
-                  : {}),
-                ...(typeof yearRange.max === 'number'
-                  ? { 'primary_release_date.lte': `${yearRange.max}-12-31` }
-                  : {}),
-              }
-            : {}),
-        })
-      : await fetchMovies(TMDB_ENDPOINTS.search, {
+    if (isDiscover) {
+      searchMode.value = 'discover';
+      const data = await fetchMoviesPage(TMDB_ENDPOINTS.discover, {
+        include_adult: 'false',
+        page: 1,
+        sort_by: sortParam,
+        ...(filters.genre ? { with_genres: filters.genre } : {}),
+        ...(filters.language ? { with_original_language: filters.language } : {}),
+        ...(yearRange && yearRange.value !== 'all'
+          ? {
+              ...(typeof yearRange.min === 'number'
+                ? { 'primary_release_date.gte': `${yearRange.min}-01-01` }
+                : {}),
+              ...(typeof yearRange.max === 'number'
+                ? { 'primary_release_date.lte': `${yearRange.max}-12-31` }
+                : {}),
+            }
+          : {}),
+      });
+      if (requestId !== activeRequestId.value) return;
+      rawResults.value = (data.results ?? []).filter((movie) => !!movie.poster_path);
+      page.value = data.page ?? 1;
+      totalPages.value = data.total_pages ?? 1;
+      lastQueried.value = '추천 검색';
+      return;
+    }
+
+    // 검색어가 있을 때
+    // auto: 제목 검색만 빠르게 수행 (배우 검색은 manual일 때만 시도)
+    if (source === 'auto') {
+      searchMode.value = 'query';
+      castPersonId.value = null;
+      const movieData = await fetchMoviesPage(TMDB_ENDPOINTS.search, {
+        query: term,
+        include_adult: 'false',
+        page: 1,
+      });
+      if (requestId !== activeRequestId.value) return;
+      rawResults.value = (movieData.results ?? []).filter((m) => !!m.poster_path);
+      page.value = movieData.page ?? 1;
+      totalPages.value = movieData.total_pages ?? 1;
+      lastQueried.value = term;
+      return;
+    }
+
+    // manual: 제목 검색 + 배우 검색 보강
+    const [movieData, personRes] = await Promise.all([
+      fetchMoviesPage(TMDB_ENDPOINTS.search, {
+        query: term,
+        include_adult: 'false',
+        page: 1,
+      }),
+      tmdbClient.get('/search/person', {
+        params: {
           query: term,
           include_adult: 'false',
           page: 1,
-        });
+        },
+      }),
+    ]);
+
     if (requestId !== activeRequestId.value) return;
-    rawResults.value = data.filter((movie) => !!movie.poster_path);
-    lastQueried.value = isDiscover ? '추천 검색' : term;
-    if (!isDiscover) {
+
+    const moviesFromTitle = (movieData.results ?? []).filter((m) => !!m.poster_path);
+    const topPersonId = personRes.data?.results?.[0]?.id as number | undefined;
+
+    if (moviesFromTitle.length === 0 && topPersonId) {
+      // 배우 이름으로 검색
+      searchMode.value = 'cast';
+      castPersonId.value = topPersonId;
+      const castData = await fetchMoviesPage(TMDB_ENDPOINTS.discover, {
+        include_adult: 'false',
+        page: 1,
+        sort_by: sortParam,
+        with_cast: topPersonId,
+        ...(filters.genre ? { with_genres: filters.genre } : {}),
+        ...(filters.language ? { with_original_language: filters.language } : {}),
+        ...(yearRange && yearRange.value !== 'all'
+          ? {
+              ...(typeof yearRange.min === 'number'
+                ? { 'primary_release_date.gte': `${yearRange.min}-01-01` }
+                : {}),
+              ...(typeof yearRange.max === 'number'
+                ? { 'primary_release_date.lte': `${yearRange.max}-12-31` }
+                : {}),
+            }
+          : {}),
+      });
+      if (requestId !== activeRequestId.value) return;
+      rawResults.value = (castData.results ?? []).filter((movie) => !!movie.poster_path);
+      page.value = castData.page ?? 1;
+      totalPages.value = castData.total_pages ?? 1;
+    } else {
+      searchMode.value = 'query';
+      castPersonId.value = null;
+      rawResults.value = moviesFromTitle;
+      page.value = movieData.page ?? 1;
+      totalPages.value = movieData.total_pages ?? 1;
+    }
+
+    lastQueried.value = term;
+    if (!isDiscover && source === 'manual') {
       pushRecent(term);
     }
   } catch (e) {
@@ -380,6 +462,10 @@ const clearQuery = () => {
   error.value = null;
   rawResults.value = [];
   lastQueried.value = '';
+  searchMode.value = 'discover';
+  castPersonId.value = null;
+  page.value = 1;
+  totalPages.value = 1;
   activeRequestId.value += 1;
   loading.value = false;
   scheduleSearch();
@@ -392,6 +478,10 @@ const resetFilters = () => {
   filters.yearRange = 'all';
   rawResults.value = [];
   lastQueried.value = '';
+  searchMode.value = 'discover';
+  castPersonId.value = null;
+  page.value = 1;
+  totalPages.value = 1;
   error.value = null;
   activeRequestId.value += 1;
   loading.value = false;
@@ -428,6 +518,77 @@ const openDetail = async (movie: Movie) => {
 
 const closeDetail = () => {
   showDetail.value = false;
+};
+
+const loadMore = async () => {
+  if (!hasMore.value || loading.value || loadingMore.value) return;
+  const currentTerm = query.value.trim();
+  const isDiscover = !currentTerm && searchMode.value === 'discover';
+  const nextPage = page.value + 1;
+  const sortParam = filters.sort ? sortToApiParam[filters.sort] : sortToApiParam.popularity;
+  const yearRange = yearRanges.find((y) => y.value === filters.yearRange);
+  const requestId = activeRequestId.value;
+  loadingMore.value = true;
+  try {
+    const data = isDiscover
+      ? await fetchMoviesPage(TMDB_ENDPOINTS.discover, {
+          include_adult: 'false',
+          page: nextPage,
+          sort_by: sortParam,
+          ...(filters.genre ? { with_genres: filters.genre } : {}),
+          ...(filters.language ? { with_original_language: filters.language } : {}),
+          ...(yearRange && yearRange.value !== 'all'
+            ? {
+                ...(typeof yearRange.min === 'number'
+                  ? { 'primary_release_date.gte': `${yearRange.min}-01-01` }
+                  : {}),
+                ...(typeof yearRange.max === 'number'
+                  ? { 'primary_release_date.lte': `${yearRange.max}-12-31` }
+                  : {}),
+              }
+            : {}),
+        })
+      : searchMode.value === 'cast' && castPersonId.value
+      ? await fetchMoviesPage(TMDB_ENDPOINTS.discover, {
+          include_adult: 'false',
+          page: nextPage,
+          sort_by: sortParam,
+          with_cast: castPersonId.value,
+          ...(filters.genre ? { with_genres: filters.genre } : {}),
+          ...(filters.language ? { with_original_language: filters.language } : {}),
+          ...(yearRange && yearRange.value !== 'all'
+            ? {
+                ...(typeof yearRange.min === 'number'
+                  ? { 'primary_release_date.gte': `${yearRange.min}-01-01` }
+                  : {}),
+                ...(typeof yearRange.max === 'number'
+                  ? { 'primary_release_date.lte': `${yearRange.max}-12-31` }
+                  : {}),
+              }
+            : {}),
+        })
+      : await fetchMoviesPage(TMDB_ENDPOINTS.search, {
+          query: currentTerm,
+          include_adult: 'false',
+          page: nextPage,
+        });
+    if (requestId !== activeRequestId.value) return;
+    page.value = data.page ?? nextPage;
+    totalPages.value = data.total_pages ?? totalPages.value;
+    rawResults.value = [...rawResults.value, ...data.results.filter((movie) => !!movie.poster_path)];
+  } catch (e) {
+    console.error(e);
+  } finally {
+    loadingMore.value = false;
+  }
+};
+
+const handleScroll = () => {
+  const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+  const nearBottom = scrollTop + clientHeight >= scrollHeight - 200;
+  if (nearBottom) {
+    loadMore();
+  }
 };
 </script>
 
@@ -483,6 +644,12 @@ const closeDetail = () => {
   outline: none;
   color: #f8f8f8;
   font-size: 1rem;
+  padding-right: 32px;
+}
+
+.input-wrap input[type='search']::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .input-wrap i {
@@ -490,9 +657,11 @@ const closeDetail = () => {
 }
 
 .input-wrap .clear {
+  position: absolute;
+  right: 8px;
   border: none;
   background: transparent;
-  color: #cbd3e8;
+  color: #f5f5f5;
   cursor: pointer;
   padding: 6px;
   display: inline-flex;
