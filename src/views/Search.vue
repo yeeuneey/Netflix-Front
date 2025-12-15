@@ -65,7 +65,7 @@
         </div>
 
         <div class="select-group">
-          <label class="select-label" for="year">연도</label>
+          <label class="select-label" for="year">개봉 연도</label>
           <select id="year" v-model="filters.yearRange" class="select dark">
             <option v-for="option in yearRanges" :key="option.value" :value="option.value">
               {{ option.label }}
