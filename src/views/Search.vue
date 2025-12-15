@@ -2,7 +2,7 @@
   <div class="search-page">
     <section class="search-hero">
       <div class="hero-text">
-        <p class="eyebrow">검색</p>
+        <p class="eyebrow">SEARCH</p>
         <h1>보고 싶은 영화를 찾아보세요</h1>
       </div>
 
@@ -14,16 +14,16 @@
             type="search"
             name="query"
             autocomplete="off"
-            placeholder="제목이나 키워드를 입력하세요"
+            placeholder="제목, 배우, 키워드로 검색"
           />
-        <button v-if="query" class="clear" type="button" aria-label="Clear" @click="clearQuery">
-          <i class="fa-solid fa-xmark"></i>
+          <button v-if="query" class="clear" type="button" aria-label="Clear" @click="clearQuery">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <button class="search-btn" type="submit" :disabled="!query.trim().length || loading">
+          {{ loading ? '검색 중...' : '검색' }}
         </button>
-      </div>
-      <button class="search-btn" type="submit" :disabled="!query.trim().length || loading">
-        {{ loading ? '검색 중...' : '검색하기' }}
-      </button>
-    </form>
+      </form>
 
       <div class="filter-row">
         <div class="filter-group">
@@ -74,7 +74,7 @@
         </div>
 
         <button type="button" class="pill reset wide" @click="resetFilters" :disabled="!hasActiveFilters">
-          초기화
+          필터 초기화
         </button>
       </div>
 
@@ -90,7 +90,7 @@
           >
             {{ term }}
           </button>
-          <button type="button" class="chip clear-chip" @click="clearRecent">지우기</button>
+          <button type="button" class="chip clear-chip" @click="clearRecent">전체 지우기</button>
         </div>
       </div>
     </section>
@@ -98,16 +98,18 @@
     <section class="results">
       <div class="results-head">
         <p v-if="lastQueried" class="stats">
-          "{{ lastQueried }}" · {{ filteredResults.length }}개 결과
+          "{{ lastQueried }}" 에서 {{ filteredResults.length }}편을 찾았어요
         </p>
         <p v-if="error" class="error">{{ error }}</p>
       </div>
 
       <Loading v-if="loading" />
 
-      <p v-else-if="!lastQueried" class="placeholder muted-center">검색어나 필터를 설정하면 TMDB에서 찾아볼게요.</p>
+      <p v-else-if="!lastQueried" class="placeholder muted-center">
+        검색어를 입력하면 TMDB에서 결과를 불러옵니다.
+      </p>
       <p v-else-if="!filteredResults.length && !error" class="placeholder">
-        현재 필터에 맞는 영화가 없어요.
+        조건에 맞는 결과가 없습니다.
       </p>
 
       <div v-if="filteredResults.length" class="grid">
@@ -158,7 +160,7 @@ const query = ref('');
 const lastQueried = ref('');
 const loading = ref(false);
 const error = ref<string | null>(null);
-const results = ref<Movie[]>([]);
+const rawResults = ref<Movie[]>([]);
 const recentSearches = ref<string[]>([]);
 const activeRequestId = ref(0);
 const debounceId = ref<number | null>(null);
@@ -187,11 +189,11 @@ const sortToApiParam: Record<SortOption, string> = {
 
 const yearRanges: { value: YearRangeKey; label: string; min?: number; max?: number }[] = [
   { value: 'all', label: '전체' },
-  { value: '2020-plus', label: '2020 이후', min: 2020 },
+  { value: '2020-plus', label: '2020년 이후', min: 2020 },
   { value: '2010-2019', label: '2010-2019', min: 2010, max: 2019 },
   { value: '2000-2009', label: '2000-2009', min: 2000, max: 2009 },
   { value: '1990-1999', label: '1990-1999', min: 1990, max: 1999 },
-  { value: 'pre-1990', label: '1990 이전', max: 1989 },
+  { value: 'pre-1990', label: '1990년 이전', max: 1989 },
 ];
 
 const genres = [
@@ -215,7 +217,7 @@ const languages = [
 ] as const;
 
 const filteredResults = computed(() => {
-  let list = [...results.value];
+  let list = [...rawResults.value];
 
   const yearRange = yearRanges.find((r) => r.value === filters.yearRange);
   if (yearRange && yearRange.value !== 'all') {
@@ -238,13 +240,16 @@ const filteredResults = computed(() => {
 
   switch (filters.sort) {
     case 'rating':
-      list.sort((a, b) => (b.vote_average ?? 0) - (a.vote_average ?? 0));
+      list = [...list].sort((a, b) => (b.vote_average ?? 0) - (a.vote_average ?? 0));
       break;
     case 'recent':
-      list.sort((a, b) => (b.release_date || '').localeCompare(a.release_date || ''));
+      list = [...list].sort((a, b) => (b.release_date || '').localeCompare(a.release_date || ''));
       break;
     case 'title':
-      list.sort((a, b) => a.title.localeCompare(b.title));
+      list = [...list].sort((a, b) => a.title.localeCompare(b.title));
+      break;
+    case 'popularity':
+      list = [...list].sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0));
       break;
     default:
       break;
@@ -335,15 +340,15 @@ const triggerSearch = async () => {
           page: 1,
         });
     if (requestId !== activeRequestId.value) return;
-    results.value = data.filter((movie) => !!movie.poster_path);
-    lastQueried.value = isDiscover ? '필터 검색' : term;
+    rawResults.value = data.filter((movie) => !!movie.poster_path);
+    lastQueried.value = isDiscover ? '추천 검색' : term;
     if (!isDiscover) {
       pushRecent(term);
     }
   } catch (e) {
     console.error(e);
     if (requestId !== activeRequestId.value) return;
-    error.value = '검색 결과를 불러오지 못했어요. 잠시 후 다시 시도해주세요.';
+    error.value = '검색 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
   } finally {
     if (requestId === activeRequestId.value) {
       loading.value = false;
@@ -373,6 +378,8 @@ const clearRecent = () => {
 const clearQuery = () => {
   query.value = '';
   error.value = null;
+  rawResults.value = [];
+  lastQueried.value = '';
   activeRequestId.value += 1;
   loading.value = false;
   scheduleSearch();
@@ -383,7 +390,7 @@ const resetFilters = () => {
   filters.genre = 0;
   filters.language = '';
   filters.yearRange = 'all';
-  results.value = [];
+  rawResults.value = [];
   lastQueried.value = '';
   error.value = null;
   activeRequestId.value += 1;
@@ -413,7 +420,7 @@ const openDetail = async (movie: Movie) => {
     };
   } catch (e) {
     console.error(e);
-    detailError.value = '상세 정보를 불러오지 못했어요. 다시 시도해주세요.';
+    detailError.value = '상세 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.';
   } finally {
     detailLoading.value = false;
   }
