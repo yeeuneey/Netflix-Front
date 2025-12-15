@@ -117,6 +117,34 @@
         />
       </div>
     </section>
+
+    <div v-if="showDetail && selectedMovie" class="detail-backdrop" @click="closeDetail">
+      <article class="detail-card" @click.stop>
+        <button type="button" class="close-btn" aria-label="닫기" @click="closeDetail">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="detail-body">
+          <img class="detail-poster" :src="posterUrl(selectedMovie)" :alt="selectedMovie.title" />
+          <div class="detail-info">
+            <p class="detail-label">상세 정보</p>
+            <h3 class="detail-title">{{ selectedMovie.title }}</h3>
+            <p class="detail-overview">
+              {{ selectedMovie.overview || '줄거리 정보가 없습니다.' }}
+            </p>
+            <div class="detail-meta">
+              <span v-if="selectedMovie.vote_average">평점 {{ selectedMovie.vote_average?.toFixed(1) }}</span>
+              <span v-if="selectedMovie.release_date">· {{ selectedMovie.release_date.slice(0, 4) }}</span>
+              <span v-if="selectedMovie.original_language">· 언어 {{ selectedMovie.original_language?.toUpperCase() }}</span>
+            </div>
+            <div v-if="selectedMovie.genre_ids?.length" class="detail-genres">
+              <span class="pill ghost" v-for="gid in selectedMovie.genre_ids" :key="gid">
+                {{ genreOptions.find((g) => g.id === gid)?.name || '장르' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
   </div>
 </template>
 
@@ -138,6 +166,8 @@ const { items } = storeToRefs(wishlistStore);
 
 const loading = ref(true);
 const searchTerm = ref('');
+const showDetail = ref(false);
+const selectedMovie = ref<Movie | null>(null);
 const filters = reactive({
   sort: 'saved' as SortKey,
   genre: 0 as number,
@@ -231,8 +261,6 @@ const filteredWishlist = computed(() => {
   return list;
 });
 
-const goTo = (path: string) => window.location.assign(path);
-
 const resetFilters = () => {
   searchTerm.value = '';
   filters.sort = 'saved';
@@ -242,8 +270,20 @@ const resetFilters = () => {
 };
 
 const openDetail = (movie: Movie) => {
-  // 위시리스트에서는 클릭 시 찜 해제 동작을 우선한다.
-  wishlistStore.toggle(movie);
+  if (selectedMovie.value?.id === movie.id && showDetail.value) return;
+  selectedMovie.value = movie;
+  showDetail.value = true;
+};
+
+const closeDetail = () => {
+  if (!showDetail.value) return;
+  showDetail.value = false;
+  selectedMovie.value = null;
+};
+
+const posterUrl = (movie: Movie) => {
+  if (!movie.poster_path) return 'https://placehold.co/300x450/111827/EEE?text=No+Image';
+  return `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
 };
 
 const loadWishlist = () => {
@@ -259,7 +299,7 @@ onMounted(loadWishlist);
 .wishlist-page {
   display: grid;
   gap: 20px;
-  padding: 40px 18px 32px;
+  padding: 16px 18px 32px;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -496,6 +536,92 @@ onMounted(loadWishlist);
   justify-items: center;
 }
 
+.detail-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 60;
+}
+
+.detail-card {
+  position: relative;
+  width: min(900px, 100%);
+  background: #0d0f18;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.65);
+  padding: 18px;
+}
+
+.detail-body {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.detail-poster {
+  width: 100%;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+}
+
+.detail-info {
+  display: grid;
+  gap: 10px;
+}
+
+.detail-label {
+  margin: 0;
+  color: #b6c1de;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.detail-title {
+  margin: 0;
+  font-size: 1.6rem;
+  letter-spacing: 0.01em;
+}
+
+.detail-overview {
+  margin: 0;
+  color: #d8deee;
+  line-height: 1.6;
+}
+
+.detail-meta {
+  display: flex;
+  gap: 10px;
+  color: #c2c9de;
+  font-weight: 700;
+}
+
+.detail-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f5f5f5;
+  border-radius: 999px;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+}
+
 .empty {
   padding: 32px 20px;
   border-radius: 14px;
@@ -536,7 +662,7 @@ onMounted(loadWishlist);
 
 @media (max-width: 768px) {
   .wishlist-page {
-    padding: 70px 12px 24px;
+    padding: 5px 12px 24px;
   }
 
   .wishlist-hero {
