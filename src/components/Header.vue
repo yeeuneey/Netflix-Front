@@ -15,7 +15,7 @@
       </div>
     </nav>
 
-    <div class="actions">
+    <div class="actions" v-if="!isAuthPage">
       <button class="icon-btn" aria-label="알림">
         <i class="fas fa-bell"></i>
       </button>
@@ -40,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useAuthStore } from '@/stores/auth';
@@ -52,6 +52,7 @@ const authStore = useAuthStore();
 const { isLoggedIn, currentUser } = storeToRefs(authStore);
 
 const isScrolled = ref(false);
+const isAuthPage = computed(() => route.path === '/signin');
 
 const go = (path: string) => router.push(path);
 
