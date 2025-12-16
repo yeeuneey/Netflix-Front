@@ -293,9 +293,9 @@ const closeDetail = () => {
 }
 
 .home :deep(.movie-card) {
-  flex: 0 0 120px;
-  min-width: 100px;
-  max-width: 140px;
+  flex: 0 0 clamp(160px, 18vw, 200px);
+  min-width: clamp(160px, 18vw, 200px);
+  max-width: 220px;
   width: 100%;
   box-shadow: none !important;
   border: 1px solid rgba(255, 255, 255, 0.02);
@@ -326,6 +326,11 @@ const closeDetail = () => {
   .hero__desc {
     -webkit-line-clamp: 4;
   }
+  .home :deep(.movie-card) {
+    flex-basis: clamp(150px, 28vw, 190px);
+    min-width: clamp(150px, 28vw, 190px);
+    max-width: 200px;
+  }
 }
 
 @media (max-width: 560px) {
@@ -349,6 +354,11 @@ const closeDetail = () => {
   }
   .btn {
     padding: 9px 14px;
+  }
+  .home :deep(.movie-card) {
+    flex-basis: clamp(140px, 42vw, 176px);
+    min-width: clamp(140px, 42vw, 176px);
+    max-width: 186px;
   }
 }
 </style>

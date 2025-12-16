@@ -12,10 +12,9 @@
       </div>
 
       <div class="status-card">
-        <p class="label">현재 상태</p>
         <p class="value">{{ statusText }}</p>
         <div class="meta-row">
-          <span>로딩된 영화는 {{ movies.length }} 작품입니다.</span>
+          <span>로딩된 영화는 총 {{ movies.length }}편 입니다.</span>
           <span v-if="!hasMore">모든 페이지 로드 완료</span>
         </div>
         <div class="actions">
@@ -28,9 +27,6 @@
 
     <section class="movies-panel">
       <div class="panel-header">
-        <div>
-          <p class="eyebrow small">Popular Movies</p>
-        </div>
         <div class="view-toggle" role="group" aria-label="View mode">
           <button
             type="button"
@@ -186,7 +182,7 @@ const detailData = ref<MovieDetail | null>(null);
 const statusText = computed(() => {
   if (error.value) return '로드 실패';
   if (loading.value) return '불러오는 중...';
-  return hasMore.value ? `페이지 ${page.value - 1}까지 로딩!` : '모든 페이지 완료';
+  return hasMore.value ? `페이지 ${page.value - 1}까지 로딩했어요.` : '모든 페이지 완료';
 });
 
 const totalTablePages = computed(() => Math.max(1, Math.ceil(movies.value.length / tablePageSize.value)));
@@ -515,7 +511,7 @@ onBeforeUnmount(() => {
   gap: 8px;
   align-items: center;
   flex-wrap: wrap;
-  margin-top: 15px;
+  margin-top: 0px;
 }
 
 .view-toggle .pill {
@@ -524,21 +520,46 @@ onBeforeUnmount(() => {
 }
 
 .view-toggle .pill.active {
-  background: linear-gradient(135deg, #ff3d5a, #ff7f66);
-  color: #0b0c14;
+  background: #e50914;
+  color: #ffffff;
   border-color: transparent;
-  box-shadow: 0 10px 24px rgba(255, 61, 90, 0.28);
 }
 
 .movies-grid {
   display: grid;
-  gap: 14px;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  grid-template-columns: repeat(10, minmax(130px, 1fr));
+  max-width: 1760px;
+  margin: 0 auto;
 }
 
 .movies-grid :deep(.movie-card) {
   width: 100%;
   min-width: 0;
+}
+
+@media (max-width: 1200px) {
+  .movies-grid {
+    grid-template-columns: repeat(8, minmax(130px, 1fr));
+  }
+}
+
+@media (max-width: 960px) {
+  .movies-grid {
+    grid-template-columns: repeat(6, minmax(130px, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .movies-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .movies-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .table-wrapper {
@@ -632,7 +653,7 @@ onBeforeUnmount(() => {
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-height: calc(1.45em * 2); /* lock to 2 lines */
+  max-height: calc(1.45em * 2); 
   flex: 1 1 auto;
 }
 
@@ -761,9 +782,8 @@ onBeforeUnmount(() => {
   height: 52px;
   border-radius: 50%;
   border: none;
-  background: linear-gradient(135deg, #ff3d5a, #ff7f66);
-  color: #0b0c14;
-  box-shadow: 0 14px 30px rgba(255, 0, 38, 0.32);
+  background: #E50914;
+  color: #ffffff;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -824,7 +844,7 @@ onBeforeUnmount(() => {
 
 .eyebrow {
   margin: 0;
-  color: #9aa6c8;
+  color: #E50914;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 700;

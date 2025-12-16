@@ -95,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import LoginForm from '@/components/auth/LoginForm.vue';
@@ -155,7 +155,27 @@ const reopenForLogin = () => {
   });
 };
 
-const handleLogin = async (payload: { email: string; password: string; keepLogin: boolean }) => {
+onMounted(() => {
+  const prevOverflow = document.body.style.overflow;
+  document.body.dataset.prevOverflow = prevOverflow;
+  document.body.style.overflow = 'hidden';
+});
+
+onBeforeUnmount(() => {
+  if (document.body.dataset.prevOverflow !== undefined) {
+    document.body.style.overflow = document.body.dataset.prevOverflow;
+    delete document.body.dataset.prevOverflow;
+  } else {
+    document.body.style.overflow = '';
+  }
+});
+
+const handleLogin = async (payload: {
+  email: string;
+  password: string;
+  keepLogin: boolean;
+  saveEmail: boolean;
+}) => {
   const result = loginAuth(payload.email, payload.password, payload.keepLogin);
   alert(result.message);
   if (result.ok) {
@@ -222,7 +242,7 @@ const handleRegister = async (payload: {
 .stage-wrap {
   position: relative;
   z-index: 1;
-  width: min(1100px, calc(100% - 12px));
+  width: min(1340px, calc(100% - 12px));
   max-height: 100%;
   height: 100%;
   min-height: 0;
@@ -291,7 +311,7 @@ const handleRegister = async (payload: {
 .stage {
   position: relative;
   min-height: 0;
-  width: 100%;
+  width: min(1260px, 100%);
   margin: 0 auto;
   border-radius: 28px;
   overflow: hidden;
@@ -327,6 +347,7 @@ const handleRegister = async (payload: {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: clamp(10px, 2vw, 18px);
 }
 
 .stage-screen.is-hidden {
@@ -462,18 +483,17 @@ const handleRegister = async (payload: {
   z-index: 1;
   display: flex;
   flex-direction: column;
-  width: min(640px, 100%);
-  height: clamp(520px, 68vh, 640px);
+  width: clamp(1040px, 94vw, 1440px);
+  min-height: clamp(660px, 72vh, 920px);
   max-height: 100%;
-  min-height: 0;
   background: rgba(12, 14, 24, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 28px;
-  padding: 26px 20px;
+  padding: clamp(22px, 2vw, 30px) clamp(20px, 2vw, 28px);
   box-shadow: 0 28px 90px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(12px);
   margin: 0 auto;
-    overflow: auto;
+  overflow: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
 }
@@ -584,6 +604,10 @@ const handleRegister = async (payload: {
   flex-direction: column;
   gap: 16px;
   height: 100%;
+  max-width: 1420px;
+  margin: 0 auto;
+  justify-content: center;
+  width: 100%;
 }
 
 .card-stage {
@@ -629,7 +653,7 @@ const handleRegister = async (payload: {
   background: linear-gradient(180deg, rgba(18, 20, 30, 0.96), rgba(12, 14, 22, 0.96));
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
-  padding: 22px 18px 24px;
+  padding: clamp(24px, 2.6vw, 32px) clamp(20px, 2.6vw, 30px) clamp(26px, 2.6vw, 36px);
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.04);
   transform-origin: center;
   overflow: hidden;
@@ -637,6 +661,10 @@ const handleRegister = async (payload: {
   height: 100%;
   display: flex;
   flex-direction: column;
+  width: 92%;
+  max-width: 1300px;
+  min-width: 880px;
+  margin: 0 auto;
 }
 
 .form-card::before {
@@ -663,13 +691,13 @@ const handleRegister = async (payload: {
 
 .form-card.login {
   animation: tiltIn 0.65s cubic-bezier(0.3, 0.7, 0.3, 1);
-  padding-top: 100px;
-  padding-bottom: 32px;
+  padding-top: clamp(100px, 20vh, 150px);
+  padding-bottom: clamp(30px, 4vh, 48px);
 }
 .form-card.register {
   animation: tiltInReverse 0.65s cubic-bezier(0.3, 0.7, 0.3, 1);
-  padding-top: 100px;
-  padding-bottom: 32px;
+  padding-top: clamp(100px, 12vh, 150px);
+  padding-bottom: clamp(30px, 4vh, 48px);
 }
 
 .form-card.login .form-header {
@@ -681,6 +709,7 @@ const handleRegister = async (payload: {
 
 .form-header h1 {
   margin: 4px 0 8px;
+  font-size: clamp(1.4rem, 2vw, 2rem);
 }
 
 .form-header .lede {
@@ -838,7 +867,9 @@ const handleRegister = async (payload: {
   }
 
   .auth-shell {
-    padding: 26px 18px;
+    padding: 24px 20px;
+    width: min(960px, 100%);
+    height: clamp(640px, 70vh, 820px);
   }
 
   .hero {
@@ -865,7 +896,7 @@ const handleRegister = async (payload: {
   }
 
   .auth-shell {
-    padding: 22px 18px;
+    padding: 20px 16px;
   }
 
   .card-stack {
@@ -874,6 +905,7 @@ const handleRegister = async (payload: {
 
   .form-card {
     padding: 22px 18px;
+    width: min(100%, 760px);
   }
 
   .stage-controls {
@@ -890,6 +922,36 @@ const handleRegister = async (payload: {
   .control-btn {
     flex: 1;
     text-align: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .auth-shell {
+    width: 100%;
+    padding: 16px 14px;
+    min-height: auto;
+  }
+
+  .form-stage {
+    max-width: none;
+    width: 100%;
+  }
+
+  .form-card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: clamp(20px, 6vw, 28px) clamp(16px, 5vw, 24px) clamp(24px, 6vw, 32px);
+  }
+
+  .form-card.login {
+    padding-top: clamp(100px, 120vh, 180px);
+    padding-bottom: clamp(26px, 5vh, 40px);
+  }
+
+  .form-card.register {
+    padding-top: clamp(100px, 120vh, 150px);
+    padding-bottom: clamp(26px, 5vh, 40px);
   }
 }
 

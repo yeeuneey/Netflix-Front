@@ -232,22 +232,7 @@ const closeDetail = () => {
 }
 .slider::before,
 .slider::after {
-  content: '';
-  position: absolute;
-  top: 4px;
-  bottom: 4px;
-  width: 68px;
-  pointer-events: none;
-  z-index: 3;
-  transition: opacity 0.2s ease;
-}
-.slider::before {
-  left: var(--nav-offset);
-  background: linear-gradient(90deg, rgba(9, 9, 12, 0.92), rgba(9, 9, 12, 0));
-}
-.slider::after {
-  right: var(--nav-offset);
-  background: linear-gradient(270deg, rgba(9, 9, 12, 0.92), rgba(9, 9, 12, 0));
+  content: none;
 }
 
 .slider-window {
@@ -283,6 +268,10 @@ const closeDetail = () => {
 .movie-track > * {
   scroll-snap-align: start;
   scroll-snap-stop: always;
+}
+:deep(.movie-card) {
+  flex: 0 0 clamp(150px, 17vw, 190px);
+  min-width: clamp(150px, 17vw, 190px);
 }
 
 .nav-btn {

@@ -159,29 +159,32 @@ const onSubmit = () => {
 <style scoped>
 .auth-form {
   display: grid;
-  gap: 14px;
+  gap: 12px;
+  width: 100%;
 }
 
 .field {
   display: grid;
-  gap: 6px;
+  gap: 5px;
+  width: 100%;
 }
 
 label {
-  font-size: 0.95rem;
+  font-size: clamp(0.82rem, 0.74vw, 0.9rem);
   color: #cfd6eb;
 }
 
 input[type='email'],
 input[type='password'] {
   width: 100%;
-  padding: 12px 14px;
-  border-radius: 10px;
+  padding: clamp(8px, 0.7vw, 11px) clamp(9px, 0.82vw, 13px);
+  border-radius: 9px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.04);
   color: #f8f9fc;
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-size: clamp(0.82rem, 0.8vw, 0.9rem);
 }
 
 input[type='email']:focus,
@@ -205,6 +208,8 @@ input[type='password']:focus {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
 }
 
 .checkbox {
@@ -212,23 +217,24 @@ input[type='password']:focus {
   align-items: center;
   gap: 8px;
   color: #c0c9e3;
-  font-size: 0.95rem;
+  font-size: clamp(0.82rem, 0.74vw, 0.9rem);
   cursor: pointer;
 }
 
 .checkbox input {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   accent-color: #e50914;
 }
 
 button[type='submit'] {
-  padding: 10px 16px;
-  border-radius: 12px;
+  padding: clamp(7px, 0.68vw, 10px) clamp(10px, 0.8vw, 14px);
+  border-radius: 8px;
   border: none;
   background: #e50914;
   color: #fff;
   font-weight: 700;
+  font-size: clamp(0.82rem, 0.8vw, 0.9rem);
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }

@@ -539,15 +539,24 @@ onMounted(loadWishlist);
 }
 
 .grid {
+  --grid-gap: 10px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 12px;
-  justify-items: center;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: var(--grid-gap);
   padding: 0 4px;
+  width: 100%;
+  justify-content: stretch;
 }
+
 :deep(.movie-card) {
   width: 100%;
   min-width: 0;
+}
+
+@media (max-width: 1200px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
 }
 
 .detail-backdrop {

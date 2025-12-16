@@ -68,7 +68,7 @@ const { isLoggedIn, currentUser } = storeToRefs(authStore);
 
 const navLinks = [
   { path: '/', label: '메인' },
-  { path: '/popular', label: '인기 콘텐츠' },
+  { path: '/popular', label: '대세 콘텐츠' },
   { path: '/search', label: '찾아보기' },
   { path: '/wishlist', label: '내가 찜한 리스트' },
 ];
@@ -114,7 +114,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.05) 100%);
   backdrop-filter: blur(10px);
   color: #f8f8f8;
-  z-index: 1;
+  z-index: 120;
   transition: background 0.25s ease, box-shadow 0.25s ease, padding 0.25s ease, grid-template-columns 0.25s ease;
 }
 .main-header.scrolled {

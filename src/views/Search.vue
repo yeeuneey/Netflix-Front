@@ -120,6 +120,14 @@
           @detail="openDetail"
         />
       </div>
+
+      <div v-if="loadingMore" class="infinite-loader">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <span>
+          다음 페이지 로딩 중
+          <span class="dots" aria-hidden="true">...</span>
+        </span>
+      </div>
     </section>
 
     <MovieDetailModal
@@ -130,6 +138,16 @@
       :error="detailError"
       @close="closeDetail"
     />
+
+    <button
+      v-if="canScrollTop"
+      type="button"
+      class="top-button"
+      aria-label="맨 위로 이동"
+      @click="scrollToTop"
+    >
+      <i class="fa-solid fa-arrow-up"></i>
+    </button>
   </div>
 </template>
 
@@ -169,6 +187,7 @@ const debounceId = ref<number | null>(null);
 const page = ref(1);
 const totalPages = ref(1);
 const loadingMore = ref(false);
+const canScrollTop = ref(false);
 const AUTO_SEARCH_MIN = 2;
 const AUTO_SEARCH_DELAY = 120;
 
@@ -520,6 +539,8 @@ const closeDetail = () => {
   showDetail.value = false;
 };
 
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const loadMore = async () => {
   if (!hasMore.value || loading.value || loadingMore.value) return;
   const currentTerm = query.value.trim();
@@ -529,6 +550,7 @@ const loadMore = async () => {
   const yearRange = yearRanges.find((y) => y.value === filters.yearRange);
   const requestId = activeRequestId.value;
   loadingMore.value = true;
+  const startedAt = performance.now();
   try {
     const data = isDiscover
       ? await fetchMoviesPage(TMDB_ENDPOINTS.discover, {
@@ -579,6 +601,11 @@ const loadMore = async () => {
   } catch (e) {
     console.error(e);
   } finally {
+    const elapsed = performance.now() - startedAt;
+    const remaining = Math.max(0, 2500 - elapsed);
+    if (remaining) {
+      await delay(remaining);
+    }
     loadingMore.value = false;
   }
 };
@@ -589,6 +616,11 @@ const handleScroll = () => {
   if (nearBottom) {
     loadMore();
   }
+  canScrollTop.value = scrollTop > 180;
+};
+
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 </script>
 
@@ -949,19 +981,90 @@ const handleScroll = () => {
 }
 
 .grid {
+  --grid-gap: 10px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: var(--grid-gap);
   padding: 0 4px;
+  width: 100%;
+  justify-content: stretch;
 }
+
 :deep(.movie-card) {
   width: 100%;
   min-width: 0;
 }
 
+.infinite-loader {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  color: #ff0019;
+  font-weight: 700;
+  margin: 10px 0 0;
+}
+
+.dots {
+  display: inline-block;
+  width: 22px;
+  text-align: left;
+}
+
+.dots::after {
+  content: '...';
+}
+
+.top-button {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: #E50914;
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  z-index: 50;
+}
+
+.top-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px rgba(255, 61, 90, 0.4);
+}
+
+.top-button:active {
+  transform: translateY(0);
+}
+
+.top-button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 4px;
+}
+
+@media (max-width: 1200px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+}
+
 @media (max-width: 768px) {
   .search-bar {
     grid-template-columns: 1fr;
+  }
+
+  .top-button {
+    right: 16px;
+    bottom: 16px;
+    width: 48px;
+    height: 48px;
   }
 }
 </style>

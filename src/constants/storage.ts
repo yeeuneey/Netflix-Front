@@ -5,6 +5,7 @@ export const STORAGE_KEYS = {
   users: 'nf_users',
   auth: 'nf_auth',
   tmdbKey: 'tmdb-key',
+  savedLoginEmail: 'nf_saved_login_email',
   wishlist: 'movieWishlist',
   recentSearches: 'recentSearches',
 } as const;
