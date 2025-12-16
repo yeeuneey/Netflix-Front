@@ -22,6 +22,11 @@ export const useWishlist = defineStore('wishlist', {
       const exists = this.items.some((m) => m.id === movie.id);
 
       if (exists) {
+        const confirmed =
+          typeof window === 'undefined' ||
+          window.confirm('찜한 리스트에서 삭제하시겠습니까?');
+        if (!confirmed) return;
+
         this.items = this.items.filter((m) => m.id !== movie.id);
       } else {
         this.items.push(movie);

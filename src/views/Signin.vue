@@ -50,7 +50,7 @@
                   <div :key="mode" class="form-card" :class="mode">
                     <div class="form-header">
                       <div class="eyebrow-row">
-                        <p class="eyebrow">{{ mode === 'login' ? 'WELCOME BACK' : 'JOIN US' }}</p>
+                        <p class="eyebrow">{{ mode === 'login' ? 'WELCOME' : 'JOIN US' }}</p>
                         <span class="status-chip" :class="mode">
                           {{ mode === 'login' ? 'Returning Crew' : 'New Crew' }}
                         </span>
@@ -396,6 +396,9 @@ const handleRegister = async (payload: {
 }
 
 .curtain {
+  /* 커튼 열림 폭을 뷰포트에 따라 보간 (항상 일부 덮이도록 좁게 설정) */
+  --panel-width: clamp(54%, 58vw, 62%);
+  --open-shift: clamp(60%, 64vw, 68%);
   position: absolute;
   inset: -1px;
   display: flex;
@@ -419,7 +422,7 @@ const handleRegister = async (payload: {
 
 .curtain-panel {
   position: relative;
-  width: 60%;
+  width: var(--panel-width);
   background: radial-gradient(circle at 20% 20%, rgba(255, 120, 120, 0.18), transparent 55%),
     linear-gradient(135deg, #9d0000 0%, #6d0000 50%, #4d0000 100%);
   box-shadow: inset -4px 0 16px rgba(0, 0, 0, 0.35), 0 12px 28px rgba(0, 0, 0, 0.45);
@@ -461,12 +464,12 @@ const handleRegister = async (payload: {
 
 .curtain.open .curtain-panel.left,
 .curtain.opening .curtain-panel.left {
-  transform: translateX(-85%);
+  transform: translateX(calc(var(--open-shift) * -1));
 }
 
 .curtain.open .curtain-panel.right,
 .curtain.opening .curtain-panel.right {
-  transform: translateX(85%);
+  transform: translateX(var(--open-shift));
 }
 
 .curtain.closing .curtain-panel.left,
@@ -483,8 +486,8 @@ const handleRegister = async (payload: {
   z-index: 1;
   display: flex;
   flex-direction: column;
-  width: clamp(1040px, 94vw, 1440px);
-  min-height: clamp(660px, 72vh, 920px);
+  width: min(100%, 1440px);
+  min-height: clamp(640px, 72vh, 920px);
   max-height: 100%;
   background: rgba(12, 14, 24, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -661,10 +664,11 @@ const handleRegister = async (payload: {
   height: 100%;
   display: flex;
   flex-direction: column;
-  width: 92%;
-  max-width: 1300px;
-  min-width: 880px;
+  width: clamp(320px, 80vw, 760px);
+  max-width: 760px;
   margin: 0 auto;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
 }
 
 .form-card::before {
@@ -852,10 +856,10 @@ const handleRegister = async (payload: {
 }
 
 .deck-enter-active {
-  animation: stackSlideIn 0.55s cubic-bezier(0.3, 0.7, 0.3, 1);
+  animation: cardFlipIn 0.55s cubic-bezier(0.3, 0.7, 0.3, 1) both;
 }
 .deck-leave-active {
-  animation: stackSlideOut 0.45s ease forwards;
+  animation: cardFlipOut 0.45s cubic-bezier(0.6, 0.2, 0.35, 1) both;
 }
 
 @media (max-width: 1024px) {
@@ -868,7 +872,7 @@ const handleRegister = async (payload: {
 
   .auth-shell {
     padding: 24px 20px;
-    width: min(960px, 100%);
+    width: min(640px, 100%);
     height: clamp(640px, 70vh, 820px);
   }
 
@@ -884,6 +888,19 @@ const handleRegister = async (payload: {
     flex-direction: column;
     align-items: stretch;
     text-align: center;
+  }
+
+  .form-card {
+    width: clamp(320px, 82vw, 720px);
+    max-width: 720px;
+    padding: clamp(22px, 3vw, 30px);
+  }
+  .form-card.login {
+    max-width: 500px;
+  }
+  .curtain {
+    --panel-width: 58%;
+    --open-shift: 64%;
   }
 }
 
@@ -905,7 +922,16 @@ const handleRegister = async (payload: {
 
   .form-card {
     padding: 22px 18px;
-    width: min(100%, 760px);
+    width: clamp(300px, 86vw, 640px);
+    max-width: 640px;
+  }
+  .form-card.login {
+    width: clamp(300px, 84vw, 560px);
+    max-width: 560px;
+  }
+  .curtain {
+    --panel-width: 60%;
+    --open-shift: 66%;
   }
 
   .stage-controls {
@@ -923,35 +949,72 @@ const handleRegister = async (payload: {
     flex: 1;
     text-align: center;
   }
+
+  .curtain-panel {
+  }
+  .curtain.open .curtain-panel.left,
+  .curtain.opening .curtain-panel.left {
+    transform: translateX(calc(var(--open-shift) * -1));
+  }
+  .curtain.open .curtain-panel.right,
+  .curtain.opening .curtain-panel.right {
+    transform: translateX(var(--open-shift));
+  }
 }
 
 @media (max-width: 600px) {
   .auth-shell {
-    width: 100%;
-    padding: 16px 14px;
+    width: 170%;
+    padding: 30px 12px;
     min-height: auto;
   }
 
   .form-stage {
-    max-width: none;
-    width: 100%;
+    max-width: 100%;
+    width: 150%;
   }
 
   .form-card {
     width: 100%;
-    max-width: 100%;
+    max-width: 520px;
     min-width: 0;
-    padding: clamp(20px, 6vw, 28px) clamp(16px, 5vw, 24px) clamp(24px, 6vw, 32px);
+    padding: clamp(18px, 6vw, 22px) clamp(12px, 5vw, 16px) clamp(20px, 6vw, 24px);
+  }
+  .form-card.login {
+    max-width: 250px;
+  }
+  .curtain {
+    --panel-width: 64%;
+    --open-shift: 70%;
   }
 
   .form-card.login {
-    padding-top: clamp(100px, 120vh, 180px);
-    padding-bottom: clamp(26px, 5vh, 40px);
+    padding-top: clamp(86px, 22vh, 120px);
+    padding-bottom: clamp(24px, 6vh, 36px);
   }
 
   .form-card.register {
-    padding-top: clamp(100px, 120vh, 150px);
-    padding-bottom: clamp(26px, 5vh, 40px);
+    padding-top: clamp(86px, 22vh, 120px);
+    padding-bottom: clamp(24px, 6vh, 36px);
+  }
+
+  .curtain-panel {
+  }
+  .curtain.open .curtain-panel.left,
+  .curtain.opening .curtain-panel.left {
+    transform: translateX(calc(var(--open-shift) * -1));
+  }
+  .curtain.open .curtain-panel.right,
+  .curtain.opening .curtain-panel.right {
+    transform: translateX(var(--open-shift));
+  }
+
+  .stage {
+    padding: 10px 8px 12px;
+  }
+
+  .auth-shell {
+    border-radius: 20px;
   }
 }
 
@@ -1011,6 +1074,31 @@ const handleRegister = async (payload: {
   to {
     opacity: 0;
     transform: translateY(-8px) scale(0.98);
+  }
+}
+
+@keyframes cardFlipIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) rotateY(18deg) scale(0.98);
+  }
+  60% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotateY(0deg) scale(1);
+  }
+}
+
+@keyframes cardFlipOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) rotateY(0deg) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px) rotateY(-14deg) scale(0.98);
   }
 }
 </style>
