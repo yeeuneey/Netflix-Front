@@ -950,8 +950,6 @@ const handleRegister = async (payload: {
     text-align: center;
   }
 
-  .curtain-panel {
-  }
   .curtain.open .curtain-panel.left,
   .curtain.opening .curtain-panel.left {
     transform: translateX(calc(var(--open-shift) * -1));
@@ -998,8 +996,6 @@ const handleRegister = async (payload: {
     padding-bottom: clamp(24px, 6vh, 36px);
   }
 
-  .curtain-panel {
-  }
   .curtain.open .curtain-panel.left,
   .curtain.opening .curtain-panel.left {
     transform: translateX(calc(var(--open-shift) * -1));

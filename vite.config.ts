@@ -4,7 +4,8 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [vue()],
-  base: '',
+  // GitHub Pages 배포용 베이스 경로
+  base: '/Netflix-Front/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
