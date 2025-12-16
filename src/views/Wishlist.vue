@@ -299,9 +299,8 @@ onMounted(loadWishlist);
 .wishlist-page {
   display: grid;
   gap: 20px;
-  padding: 16px 18px 32px;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 12px 12px 32px;
+  width: 100%;
 }
 
 .wishlist-hero {
@@ -311,7 +310,9 @@ onMounted(loadWishlist);
   padding: 18px;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  background: linear-gradient(135deg, rgba(229, 9, 20, 0.14), rgba(17, 17, 24, 0.92));
+  background: radial-gradient(circle at 10% 10%, rgba(229, 9, 20, 0.12), transparent 30%),
+    radial-gradient(circle at 90% 10%, rgba(123, 109, 255, 0.14), transparent 24%),
+    rgba(16, 18, 28, 0.9);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
 }
 
@@ -325,6 +326,14 @@ onMounted(loadWishlist);
   margin: 0 0 12px;
   color: #cdd3e4;
   max-width: 640px;
+}
+
+.eyebrow {
+  margin: 0;
+  color: #e50914;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
 }
 
 .hero-meta {
@@ -344,8 +353,8 @@ onMounted(loadWishlist);
 }
 
 .chip.primary {
-  background: linear-gradient(135deg, #ff3d5a, #ff7f66);
-  color: #0b0c14;
+  background: #e50914;
+  color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -450,8 +459,8 @@ onMounted(loadWishlist);
 }
 
 .pill.primary {
-  background: linear-gradient(135deg, #ff3d5a, #ff7f66);
-  color: #0b0c14;
+  background: #e50914;
+  color: #ffffff;
   border-color: rgba(255, 255, 255, 0.12);
 }
 
@@ -462,21 +471,20 @@ onMounted(loadWishlist);
 }
 
 .pill.ghost.active {
-  background: linear-gradient(135deg, #ff3d5a, #ff7f66);
-  color: #0b0c14;
+  background: #e50914;
+  color: #ffffff;
   border-color: transparent;
-  box-shadow: 0 8px 18px rgba(229, 9, 20, 0.35);
 }
 
 .pill.reset {
   justify-self: flex-start;
-  background: rgba(255, 255, 255, 0.03);
+  background: #e50914;
   border-color: rgba(255, 255, 255, 0.12);
-  color: #d3daea;
+  color: #ffffff;
 }
 
 .pill:disabled {
-  opacity: 0.4;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -527,13 +535,19 @@ onMounted(loadWishlist);
 
 .wishlist-content {
   min-height: 240px;
+  padding: 0 8px 12px;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 12px;
   justify-items: center;
+  padding: 0 4px;
+}
+:deep(.movie-card) {
+  width: 100%;
+  min-width: 0;
 }
 
 .detail-backdrop {

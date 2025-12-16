@@ -1,5 +1,5 @@
 <template>
-  <article class="movie-card" @click="emitDetail">
+  <article class="movie-card" @click="toggleWishlist">
     <div class="poster-wrapper">
       <div class="poster-chrome">
         <div v-if="rank" :class="['rank-badge', rankTierClass]">
@@ -12,7 +12,7 @@
           type="button"
           :aria-pressed="isWished"
           :title="isWished ? '위시리스트에서 제거' : '위시리스트에 추가'"
-          @click.stop="toggleWishlist"
+          tabindex="-1"
         >
           <i :class="isWished ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
         </button>
@@ -247,7 +247,7 @@ const emitDetail = () => emit('detail', props.movie);
   position: absolute;
   top: 10px;
   right: 10px;
-  pointer-events: auto;
+  pointer-events: none;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -257,7 +257,7 @@ const emitDetail = () => emit('detail', props.movie);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  cursor: default;
   z-index: 3;
   transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
 }

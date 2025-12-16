@@ -23,7 +23,7 @@
         type="password"
         name="password"
         autocomplete="new-password"
-        placeholder="발급받은 TMDB API 키를 입력해 주세요."
+        placeholder="TMDB API 키를 입력해 주세요."
         required
         @blur="validatePassword"
       />
@@ -193,7 +193,7 @@ input[type='password']:focus {
 .error {
   margin: 0;
   font-size: 0.85rem;
-  color: #ff7f7f;
+  color: #e50914;
 }
 
 .terms-error {
@@ -226,11 +226,10 @@ button[type='submit'] {
   padding: 10px 16px;
   border-radius: 12px;
   border: none;
-  background: linear-gradient(135deg, #ff3b3b, #e50914 70%, #ff6a6a);
+  background: #e50914;
   color: #fff;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 8px 18px rgba(229, 9, 20, 0.35);
   transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
 
@@ -240,7 +239,7 @@ button[type='submit']:hover {
 }
 
 button[type='submit']:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
   box-shadow: none;
 }

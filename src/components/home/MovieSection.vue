@@ -254,7 +254,7 @@ const closeDetail = () => {
   position: relative;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 10px 4px 12px;
+  padding: 10px 12px 12px;
   scroll-snap-type: x mandatory;
   overscroll-behavior-inline: contain;
   scroll-padding-inline: 16px;
@@ -276,8 +276,8 @@ const closeDetail = () => {
 
 .movie-track {
   display: flex;
-  gap: 8px;
-  padding: 2px 8px 8px;
+  gap: 10px;
+  padding: 2px 14px 8px 8px;
   scroll-snap-type: x mandatory;
 }
 .movie-track > * {

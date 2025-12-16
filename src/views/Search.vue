@@ -98,7 +98,7 @@
     <section class="results">
       <div class="results-head">
         <p v-if="lastQueried" class="stats">
-          "{{ lastQueried }}" 에서 {{ filteredResults.length }}편을 찾았어요
+          "{{ lastQueried }}" 에서 {{ filteredResults.length }}편을 찾았어요.
         </p>
         <p v-if="error" class="error">{{ error }}</p>
       </div>
@@ -597,6 +597,7 @@ const handleScroll = () => {
   display: grid;
   gap: 18px;
   margin-top: 4px;
+  padding: 12px 12px 28px;
 }
 
 .search-hero {
@@ -609,6 +610,14 @@ const handleScroll = () => {
     radial-gradient(circle at 90% 10%, rgba(123, 109, 255, 0.14), transparent 24%),
     rgba(16, 18, 28, 0.9);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+.eyebrow {
+  margin: 0;
+  color: #e50914;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
 }
 
 .hero-text h1 {
@@ -675,8 +684,8 @@ const handleScroll = () => {
   padding: 12px 18px;
   border-radius: 12px;
   border: none;
-  background: linear-gradient(135deg, #ff3d5a, #ff7f66);
-  color: #0b0c14;
+  background: #e50914;
+  color: #ffffff;
   font-weight: 800;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
@@ -684,7 +693,7 @@ const handleScroll = () => {
 }
 
 .search-btn:disabled {
-  opacity: 0.7;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -729,7 +738,7 @@ const handleScroll = () => {
 
 .select-label {
   font-weight: 800;
-  color: #f6f6f6;
+  color: #cbd3e8;
   font-size: 0.95rem;
 }
 
@@ -774,10 +783,9 @@ const handleScroll = () => {
 }
 
 .pill.active {
-  background: linear-gradient(135deg, #ff3d5a, #ff7f66);
-  color: #0b0c14;
+  background: #e50914;
+  color: #ffffff;
   border-color: transparent;
-  box-shadow: 0 10px 24px rgba(255, 61, 90, 0.28);
 }
 
 .pill.wide {
@@ -790,8 +798,8 @@ const handleScroll = () => {
   padding: 12px 18px;
   border-radius: 12px;
   border: none;
-  background: linear-gradient(135deg, #ff3d5a, #ff7f66);
-  color: #0b0c14;
+  background: #e50914;
+  color: #ffffff;
   font-weight: 800;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
@@ -799,7 +807,7 @@ const handleScroll = () => {
 }
 
 .pill.reset:disabled {
-  opacity: 0.7;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -906,6 +914,7 @@ const handleScroll = () => {
 .results {
   display: grid;
   gap: 12px;
+  padding: 0 8px 12px;
 }
 
 .results-head {
@@ -924,13 +933,13 @@ const handleScroll = () => {
 
 .error {
   margin: 0;
-  color: #ff9ca2;
+  color: #e50914;
   font-weight: 700;
 }
 
 .placeholder {
   margin: 0;
-  color: #ff3d5a;
+  color: #e50914;
 }
 
 .placeholder.muted-center {
@@ -941,16 +950,13 @@ const handleScroll = () => {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   gap: 12px;
+  padding: 0 4px;
 }
-
-.eyebrow {
-  margin: 0;
-  color: #9aa6c8;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 700;
+:deep(.movie-card) {
+  width: 100%;
+  min-width: 0;
 }
 
 @media (max-width: 768px) {

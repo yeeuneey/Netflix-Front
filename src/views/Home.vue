@@ -241,7 +241,7 @@ const closeDetail = () => {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #ffb3c0;
+  color: #e50914 ;
 }
 
 .hero__title {
@@ -290,6 +290,19 @@ const closeDetail = () => {
 .btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.home :deep(.movie-card) {
+  flex: 0 0 120px;
+  min-width: 100px;
+  max-width: 140px;
+  width: 100%;
+  box-shadow: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+.home :deep(.movie-card:hover) {
+  box-shadow: none !important;
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 @media (max-width: 1024px) {

@@ -1,12 +1,5 @@
 <template>
   <section class="auth-page" :class="[mode, curtainState]">
-    <div class="starfield">
-      <span class="stars layer-1"></span>
-      <span class="stars layer-2"></span>
-      <span class="stars layer-3"></span>
-      <div class="grain"></div>
-    </div>
-
     <div class="stage-wrap">
       <div class="stage-topper">
         <div class="stage-title">
@@ -19,10 +12,7 @@
       <div class="hero-outside">
         <div class="hero">
           <div class="pill">RED CURTAIN ENTRANCE</div>
-          <h1>TMDB API로 입장, 레드카펫처럼 반짝이게.</h1>
-          <p class="lede">
-            로그인 후 여러분의 무대를 누리세요!
-          </p>
+          <h1>TMDB API로 입장, <br> 레드카펫처럼 반짝이게.</h1>
         </div>
       </div>
 
@@ -90,8 +80,6 @@
 
       <div class="stage-controls">
         <div class="control-copy">
-          <h3>무대 아래에서 대기 중</h3>
-          <p>커튼을 열어 로그인/회원가입 스크린을 확인하세요.</p>
         </div>
         <div class="control-buttons">
           <button class="control-btn primary" type="button" @click="startExperience('login')">
@@ -199,98 +187,51 @@ const handleRegister = async (payload: {
 <style scoped>
 .auth-page {
   position: relative;
-  min-height: calc(100vh - 80px);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 48px 16px 86px;
+  min-height: 100vh;
+  height: 100vh;
+  padding: clamp(8px, 2vw, 16px) clamp(10px, 3vw, 16px);
   overflow: hidden;
-  transition: background 0.4s ease;
-  background: #0b0c14;
+  transition: none;
+  background: #000000;
+  width: 100%;
 }
 
 .auth-page.login {
-  background: radial-gradient(120% 120% at 10% 10%, rgba(229, 9, 20, 0.08), transparent 40%),
-    #0b0c14;
+  background: #000000;
 }
 
 .auth-page.register {
-  background: radial-gradient(120% 120% at 90% 20%, rgba(0, 200, 160, 0.08), transparent 40%),
-    #0b0c14;
+  background: #000000;
 }
 
-.bg-aurora {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 20% 20%, rgba(255, 70, 120, 0.12), transparent 35%),
-    radial-gradient(circle at 80% 0%, rgba(120, 90, 255, 0.14), transparent 30%),
-    radial-gradient(circle at 50% 100%, rgba(0, 200, 255, 0.12), transparent 25%);
-  filter: blur(6px);
-  z-index: 0;
-}
-
-.grid-lines {
-  position: absolute;
-  inset: 0;
-  background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 120px 120px;
-  opacity: 0.35;
-  mix-blend-mode: screen;
-}
-
-.grain {
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 0;
-}
-
-.scanlines {
-  position: absolute;
-  inset: 0;
-  background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 100% 6px;
-  opacity: 0.3;
-  mix-blend-mode: screen;
-}
-
-.orb {
-  position: absolute;
-  width: 240px;
-  height: 240px;
-  border-radius: 50%;
-  filter: blur(50px);
-  opacity: 0.55;
-  animation: float 18s ease-in-out infinite;
-}
-.orb-1 {
-  top: 10%;
-  left: 4%;
-  background: rgba(255, 60, 120, 0.35);
-}
-.orb-2 {
-  bottom: 12%;
-  right: 12%;
-  background: rgba(90, 150, 255, 0.35);
-  animation-delay: 2s;
-}
+.bg-aurora,
+.grid-lines,
+.grain,
+.scanlines,
+.orb,
+.orb-1,
+.orb-2,
 .orb-3 {
-  top: 32%;
-  right: 32%;
-  background: rgba(0, 220, 190, 0.3);
-  animation-delay: 4s;
+  display: none;
 }
 
 .stage-wrap {
   position: relative;
   z-index: 1;
-  width: min(1180px, calc(100% - 32px));
+  width: min(1100px, calc(100% - 12px));
+  max-height: 100%;
+  height: 100%;
+  min-height: 0;
   margin: 0 auto;
   display: grid;
-  gap: 16px;
-  padding-inline: 8px;
+  grid-template-rows: auto auto 1fr auto;
+  gap: clamp(8px, 2vw, 12px);
+  padding-inline: 0;
+  align-items: center;
 }
 
 .stage-topper {
@@ -340,33 +281,35 @@ const handleRegister = async (payload: {
 .hero-outside {
   position: relative;
   border-radius: 26px;
-  padding: 18px 18px 10px;
+  padding: 10px 12px 8px;
   margin: 0 auto;
   width: 100%;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.45);
+  z-index: 4;
+  max-height: 200px;
 }
 
 .stage {
   position: relative;
+  min-height: 0;
   width: 100%;
   margin: 0 auto;
   border-radius: 28px;
   overflow: hidden;
-  background: radial-gradient(circle at 10% 10%, rgba(255, 80, 120, 0.05), transparent 40%),
-    radial-gradient(circle at 90% 10%, rgba(0, 200, 160, 0.04), transparent 36%),
-    linear-gradient(160deg, rgba(12, 14, 24, 0.96), rgba(10, 10, 16, 0.98));
+  background: #000000;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 28px 90px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.03);
-  padding: 26px 18px;
+  padding: clamp(12px, 2vw, 18px) clamp(10px, 2vw, 16px) clamp(10px, 2vw, 16px);
   isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-height: 100%;
 }
 
 .stage::after {
   content: '';
   position: absolute;
-  inset: 8px;
+  inset: 6px;
   border-radius: 22px;
   border: 1px dashed rgba(255, 255, 255, 0.05);
   pointer-events: none;
@@ -378,6 +321,12 @@ const handleRegister = async (payload: {
   overflow: hidden;
   transition: opacity 0.6s ease, transform 0.6s ease, filter 0.6s ease;
   z-index: 2;
+  min-height: 0;
+  max-height: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .stage-screen.is-hidden {
@@ -390,9 +339,7 @@ const handleRegister = async (payload: {
 .screen-glow {
   position: absolute;
   inset: -40%;
-  background: radial-gradient(circle, rgba(229, 9, 20, 0.16), transparent 55%),
-    radial-gradient(circle at 80% 30%, rgba(90, 150, 255, 0.12), transparent 50%),
-    radial-gradient(circle at 50% 80%, rgba(0, 200, 160, 0.12), transparent 45%);
+  background: #000000;
   filter: blur(30px);
   z-index: 0;
 }
@@ -429,7 +376,7 @@ const handleRegister = async (payload: {
 
 .curtain {
   position: absolute;
-  inset: -6px;
+  inset: -1px;
   display: flex;
   align-items: stretch;
   justify-content: space-between;
@@ -451,7 +398,7 @@ const handleRegister = async (payload: {
 
 .curtain-panel {
   position: relative;
-  width: 52%;
+  width: 60%;
   background: radial-gradient(circle at 20% 20%, rgba(255, 120, 120, 0.18), transparent 55%),
     linear-gradient(135deg, #9d0000 0%, #6d0000 50%, #4d0000 100%);
   box-shadow: inset -4px 0 16px rgba(0, 0, 0, 0.35), 0 12px 28px rgba(0, 0, 0, 0.45);
@@ -513,8 +460,12 @@ const handleRegister = async (payload: {
 .auth-shell {
   position: relative;
   z-index: 1;
-  display: block;
+  display: flex;
+  flex-direction: column;
   width: min(640px, 100%);
+  height: clamp(520px, 68vh, 640px);
+  max-height: 100%;
+  min-height: 0;
   background: rgba(12, 14, 24, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 28px;
@@ -522,13 +473,23 @@ const handleRegister = async (payload: {
   box-shadow: 0 28px 90px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(12px);
   margin: 0 auto;
+    overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+.auth-shell::-webkit-scrollbar {
+  width: 8px;
+}
+.auth-shell::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
 }
 
 .hero {
   position: relative;
-  padding: 14px;
+  padding: 10px 12px 10px;
   display: grid;
-  gap: 16px;
+  gap: 10px;
   text-align: center;
 }
 
@@ -540,9 +501,9 @@ const handleRegister = async (payload: {
   justify-content: center;
   width: 100%;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 2px solid rgb(255, 255, 255);
   background: rgba(255, 255, 255, 0.05);
-  color: #dce5ff;
+  color: #e50914;
   font-weight: 700;
   font-size: 0.85rem;
   letter-spacing: 0.08em;
@@ -550,7 +511,7 @@ const handleRegister = async (payload: {
 
 .hero h1 {
   margin: 4px 0 0;
-  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-size: clamp(1.4rem, 4vw, 2.4rem);
 }
 
 .hero .lede {
@@ -558,7 +519,7 @@ const handleRegister = async (payload: {
   color: #c0c9e3;
   max-width: 720px;
   margin-inline: auto;
-  font-size: clamp(0.95rem, 2.6vw, 1.05rem);
+  font-size: clamp(0.70rem, 2.4vw, 1.05rem);
 }
 
 .hero-cards {
@@ -619,14 +580,18 @@ const handleRegister = async (payload: {
 
 .form-stage {
   position: relative;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
+  height: 100%;
 }
 
 .card-stage {
   position: relative;
   perspective: 1200px;
   padding-top: 10px;
+  flex: 1;
+  min-height: 0;
 }
 
 .card-stack {
@@ -669,6 +634,9 @@ const handleRegister = async (payload: {
   transform-origin: center;
   overflow: hidden;
   isolation: isolate;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .form-card::before {
@@ -695,17 +663,28 @@ const handleRegister = async (payload: {
 
 .form-card.login {
   animation: tiltIn 0.65s cubic-bezier(0.3, 0.7, 0.3, 1);
+  padding-top: 100px;
+  padding-bottom: 32px;
 }
 .form-card.register {
   animation: tiltInReverse 0.65s cubic-bezier(0.3, 0.7, 0.3, 1);
+  padding-top: 100px;
+  padding-bottom: 32px;
+}
+
+.form-card.login .form-header {
+  margin-bottom: 14px;
+}
+.form-card.register .form-header {
+  margin-bottom: 16px;
 }
 
 .form-header h1 {
-  margin: 6px 0 8px;
+  margin: 4px 0 8px;
 }
 
 .form-header .lede {
-  margin: 0;
+  margin: 4;
   color: #c0c9e3;
 }
 
@@ -724,7 +703,6 @@ const handleRegister = async (payload: {
   color: #f6f7ff;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
 }
 
 .status-chip.login {
@@ -778,11 +756,10 @@ const handleRegister = async (payload: {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 14px 16px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding:40px 14px;
+  background: rgb(0, 0, 0);
   border-radius: 16px;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+  flex-wrap: wrap;
 }
 
 .control-copy h3 {
@@ -799,12 +776,13 @@ const handleRegister = async (payload: {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .control-btn {
   padding: 12px 18px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1.5px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
   font-weight: 800;
@@ -815,7 +793,8 @@ const handleRegister = async (payload: {
 }
 
 .control-btn.primary {
-  background: linear-gradient(135deg, #ff3b3b, #e50914 70%, #ff6a6a);
+  background: #e50914;
+  color: #ffffff;
   border-color: rgba(255, 255, 255, 0.18);
 }
 

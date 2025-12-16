@@ -2,7 +2,7 @@
   <div class="popular-page" :class="{ 'table-mode': viewMode === 'table' }">
     <header v-if="viewMode === 'infinite'" class="page-header">
       <div class="title-block">
-        <p class="eyebrow">인기 만점!</p>
+        <p class="eyebrow">POPULAR</p>
         <h1>대세 콘텐츠</h1>
         <p class="lede">
           자동으로 다음 인기 영화 페이지를 로딩합니다.

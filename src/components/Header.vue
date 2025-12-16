@@ -114,7 +114,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.05) 100%);
   backdrop-filter: blur(10px);
   color: #f8f8f8;
-  z-index: 40;
+  z-index: 1;
   transition: background 0.25s ease, box-shadow 0.25s ease, padding 0.25s ease, grid-template-columns 0.25s ease;
 }
 .main-header.scrolled {
@@ -178,7 +178,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
   transform: translateY(-1px);
 }
 .nav-links button.active {
-  background: linear-gradient(135deg, #ff3b3b, #e50914 70%, #ff6a6a);
+  background: #e50914;
   color: #fff;
 }
 
@@ -234,8 +234,8 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
   transition: background 0.2s ease, color 0.2s ease;
 }
 .menu-dropdown button.active {
-  background: linear-gradient(135deg, #ff3b3b, #e50914 70%, #ff6a6a);
-  color: #0b0c14;
+  background: #e50914;
+  color: #ffffff;
 }
 .menu-dropdown button:hover {
   background: rgba(255, 255, 255, 0.12);
